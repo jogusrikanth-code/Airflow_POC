@@ -1,0 +1,259 @@
+# Airflow POC - Learning Project
+
+## Project Overview
+This is a beginner-friendly Apache Airflow proof of concept (POC) designed to understand core Airflow concepts through practical examples.
+
+---
+
+## 📁 Folder Structure
+
+```
+Airflow_POC/
+├── README.md                    # This file - Project documentation
+├── AIRFLOW_BASICS.md           # Learning guide for Airflow concepts
+├── airflow_home/               # Airflow home directory
+│   ├── airflow.cfg             # Airflow configuration
+│   ├── webserver_config.py     # Web UI configuration
+│   ├── airflow.db              # SQLite database (auto-created)
+│   └── logs/                   # Task execution logs
+│
+├── dags/                       # DAG definitions (Airflow will scan this folder)
+│   ├── __init__.py
+│   ├── demo_dag.py             # Simple example DAG with 2 tasks
+│   └── etl_example_dag.py      # Full ETL pipeline example
+│
+├── src/                        # Application source code
+│   ├── __init__.py
+│   ├── extract/                # Extract logic
+│   │   └── extract_from_source_a.py
+│   ├── transform/              # Transform logic
+│   │   └── transform_sales_data.py
+│   └── load/                   # Load logic
+│       └── load_to_dw.py
+│
+├── data/                       # Data storage
+│   ├── raw/                    # Input data
+│   │   └── sample_source_a.csv # Sample CSV file
+│   └── processed/              # Output data after ETL
+│
+├── docker/                     # Docker setup
+│   └── docker-compose.yaml     # Docker Compose configuration
+│
+├── plugins/                    # Custom Airflow plugins (optional)
+│   ├── hooks/
+│   └── operators/
+│
+├── config/                     # Configuration files
+├── reports/                    # Output reports
+└── tests/                      # Unit tests
+```
+
+---
+
+## 🚀 Quick Start
+
+### 1. **Initial Setup**
+```bash
+# Initialize Airflow database
+airflow db init
+
+# Create default admin user
+airflow users create \
+  --username admin \
+  --password admin \
+  --firstname Admin \
+  --lastname User \
+  --role Admin \
+  --email admin@example.com
+```
+
+### 2. **Start Airflow Components**
+```bash
+# Terminal 1: Start the scheduler
+airflow scheduler
+
+# Terminal 2: Start the web server
+airflow webserver --port 8080
+```
+
+### 3. **Access the Web UI**
+- Open browser: `http://localhost:8080`
+- Login with `admin` / `admin`
+- Enable DAGs to start running
+
+### 4. **Using Docker (Alternative)**
+```bash
+cd docker
+docker-compose up
+```
+
+---
+
+## 📚 Project DAGs
+
+### 1. **demo_dag.py** - Simple Introduction
+- **Purpose**: Learn the bare minimum to run a DAG
+- **Tasks**: 
+  - `start` (EmptyOperator)
+  - `end` (EmptyOperator)
+- **Schedule**: Daily
+- **Use Case**: Great for understanding DAG structure
+
+### 2. **etl_example_dag.py** - Full ETL Pipeline
+- **Purpose**: Learn how to chain tasks and work with data
+- **Tasks**:
+  1. `extract_from_source_a` - Reads sample CSV
+  2. `transform_sales_data` - Aggregates by date
+  3. `load_to_dw` - Verifies processed file
+- **Schedule**: Daily
+- **Data Flow**: `raw/sample_source_a.csv` → `processed/sales_daily_summary.csv`
+
+---
+
+## 🔑 Key Airflow Concepts
+
+### DAG (Directed Acyclic Graph)
+- Workflow definition with dependencies
+- `start_date`: When DAG starts running
+- `schedule_interval`: How often to run (e.g., `@daily`, `0 8 * * *`)
+- `catchup`: Whether to run past schedules
+
+### Tasks
+- Individual units of work
+- Connected by dependencies: `task1 >> task2` means task2 depends on task1
+- Common operators:
+  - `PythonOperator`: Run Python functions
+  - `BashOperator`: Run shell commands
+  - `EmptyOperator`: No-op for testing
+
+### Execution
+- **DAG Run**: One execution of an entire DAG
+- **Task Instance**: One execution of a task
+- **XCom**: Communication between tasks via key-value pairs
+
+---
+
+## 📝 Sample Data
+
+### `data/raw/sample_source_a.csv`
+```csv
+date,amount
+2024-01-01,100
+2024-01-01,200
+2024-01-02,150
+```
+
+### `data/processed/sales_daily_summary.csv` (Generated)
+```csv
+date,amount
+2024-01-01,300
+2024-01-02,150
+```
+
+---
+
+## 🛠️ Common Airflow CLI Commands
+
+```bash
+# List all DAGs
+airflow dags list
+
+# Trigger a DAG
+airflow dags trigger -d demo_dag
+
+# View task logs
+airflow tasks logs -d demo_dag -t start -e 2024-01-01
+
+# List task instances
+airflow tasks list -d demo_dag
+
+# Test a task
+airflow tasks test demo_dag start 2024-01-01
+
+# Validate DAG
+airflow dags validate
+
+# Pause/unpause DAG
+airflow dags pause demo_dag
+airflow dags unpause demo_dag
+```
+
+---
+
+## 📖 Learning Path
+
+1. **Phase 1: Understand DAG Basics**
+   - Read AIRFLOW_BASICS.md
+   - Review `demo_dag.py`
+   - Run it in the UI and observe
+
+2. **Phase 2: Task Dependencies**
+   - Modify `demo_dag.py` to add more tasks
+   - Experiment with different operators
+   - Understand task execution order
+
+3. **Phase 3: Data Processing**
+   - Review `etl_example_dag.py`
+   - Run the full ETL pipeline
+   - Check logs and output files
+
+4. **Phase 4: Advanced Topics**
+   - Learn about XCom for task communication
+   - Create custom operators in `plugins/`
+   - Add error handling and retries
+
+---
+
+## 🔧 Configuration
+
+### `airflow_home/airflow.cfg` (Key Settings)
+- `dags_folder`: Where Airflow scans for DAGs
+- `executor`: Task execution method (SequentialExecutor for POC)
+- `sql_alchemy_conn`: Database connection
+
+### Environment Variables
+```bash
+# Override config with environment variables
+export AIRFLOW__CORE__EXECUTOR=LocalExecutor
+export AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql://user:password@localhost/airflow
+```
+
+---
+
+## 🐛 Troubleshooting
+
+### DAG not showing up?
+- Ensure DAG file is in `dags/` folder
+- Check DAG file has no syntax errors
+- Verify DAG file contains a DAG object
+
+### Tasks not running?
+- Check if DAG is paused (unpause in UI)
+- Review logs in `airflow_home/logs/`
+- Ensure `schedule_interval` is set correctly
+
+### Import errors?
+- Add project root to PYTHONPATH: `export PYTHONPATH=$PYTHONPATH:$(pwd)`
+- Ensure `__init__.py` exists in each package
+
+---
+
+## 📖 Additional Resources
+
+- **Official Docs**: https://airflow.apache.org/docs/
+- **Concepts**: https://airflow.apache.org/docs/apache-airflow/stable/core-concepts/
+- **API Reference**: https://airflow.apache.org/docs/apache-airflow/stable/_api/
+
+---
+
+## ✅ Next Steps
+
+1. ✅ Understand folder structure
+2. ⏳ Run `demo_dag.py` successfully
+3. ⏳ Run `etl_example_dag.py` and check output
+4. ⏳ Modify DAGs and experiment
+5. ⏳ Create your own custom DAG
+
+---
+
+**Happy Learning! 🎓**
