@@ -1,0 +1,4 @@
+# Git ignore\n
+.venv
+archive/
+.env
