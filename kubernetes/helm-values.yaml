@@ -5,6 +5,7 @@ postgresql:
   enabled: false
 
 # External DB connections
+airflowVersion: "2.9.3"
 executor: CeleryExecutor
 data:
   metadataConnection:
@@ -75,9 +76,7 @@ dags:
     subPath: "."        # sync entire repo so `src/` is importable
     depth: 1
     wait: 60
-    # Provide a secret with GitHub credentials for private repo access (git-sync v4 keys)
-    # Create secret named `git-credentials` with keys: GITSYNC_USERNAME and GITSYNC_PASSWORD
-    credentialsSecret: git-credentials
+    # Public repo: no credentials needed. For private, set `credentialsSecret`.
 logs:
   persistence:
     enabled: false
