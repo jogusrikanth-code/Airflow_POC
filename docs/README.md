@@ -1,15 +1,17 @@
-This `docs/` folder contains project documentation moved from the repository root to keep things tidy.
+# Airflow POC — Documentation
 
-Index:
-- 00_START_HERE.md
-- AIRFLOW_BASICS.md
-- ENTERPRISE_INTEGRATION.md
-- ENTERPRISE_POC_SUMMARY.md
-- FOLDER_STRUCTURE.md
-- INDEX.md
-- KUBERNETES_CLEANUP_SUMMARY.md
-- LEARNING_CHECKLIST.md
-- QUICKSTART.md
-- SETUP_SUMMARY.md
+This folder centralizes all learning and deployment docs for your Airflow POC.
 
-The root `README.md` remains in the repository root.
+## Start Here
+- Read `ARCHITECTURE.md` for a beginner-friendly overview and flow diagram
+- Read `QUICKSTART.md` to deploy on Kubernetes quickly
+- Explore `AIRFLOW_BASICS.md` to learn core concepts
+
+## Navigation
+- `INDEX.md` — Quick links and doc map
+- `FOLDER_STRUCTURE.md` — How the repo is organized
+- `LEARNING_CHECKLIST.md` — Track your progress
+- `SETUP_SUMMARY.md` — What’s included and how to use it
+- `HELM_MIGRATION.md` — Move to the official Helm chart
+
+The root `README.md` in the repository still provides a high-level overview.

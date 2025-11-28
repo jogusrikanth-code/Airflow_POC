@@ -90,6 +90,8 @@ Airflow_POC/
 - Configure Airflow Connections for your sources (UI → Admin → Connections).
 - Enable and run `enterprise_integration_dag` from the UI.
 - Consider migrating to Helm using `kubernetes/values.yaml` as baseline.
+ - Start with the architecture overview: see `docs/ARCHITECTURE.md` (beginner-friendly diagram and step-by-step).
+ - For Helm migration guidance: see `docs/HELM_MIGRATION.md` (uses `kubernetes/helm-values.yaml`).
 
 ## 📚 Documentation Quick Links
 - Overview & Setup: `docs/README.md`

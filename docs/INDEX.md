@@ -10,6 +10,7 @@ Quick links to documentation centralized under `docs/`.
 - LEARNING_CHECKLIST.md — Track learning and validation
 - SETUP_SUMMARY.md — Environment, tools, and decisions
 - HELM_MIGRATION.md — Switch from manifests to Helm chart
+ - ARCHITECTURE.md — Visual flow & beginner procedure
 
 ## Kubernetes
 - kubernetes/README.md — Deployment guide (Windows PowerShell)

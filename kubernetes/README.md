@@ -2,6 +2,8 @@
 
 This directory contains modern Kubernetes manifests for deploying Apache Airflow 2.9.3 on Kubernetes.
 
+For a big-picture overview of how components fit together, see `docs/ARCHITECTURE.md`.
+
 ## Files Overview
 
 - `postgres.yaml` - PostgreSQL database deployment with PersistentVolume
