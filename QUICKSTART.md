@@ -1,56 +1,42 @@
-# Quick Start Guide - Running Your First Airflow DAG
+# Quickstart (Kubernetes on Docker Desktop)
 
 ## ⚡ 5-Minute Quick Start
 
-### Step 1: Initialize Airflow
-```bash
-# Set up the SQLite database
-airflow db init
-
-# Create admin user
-airflow users create \
-  --username admin \
-  --password admin \
-  --firstname Admin \
-  --lastname User \
-  --role Admin \
-  --email admin@example.com
+### Step 1: Deploy PostgreSQL
+```
+kubectl apply -f kubernetes/postgres.yaml
+kubectl wait --for=condition=ready pod -l app=postgres -n airflow --timeout=300s
 ```
 
-### Step 2: Start Airflow (2 Terminals Required)
-
-**Terminal 1 - Scheduler:**
-```bash
-airflow scheduler
+### Step 2: Deploy Airflow (CeleryExecutor + Redis)
 ```
-
-**Terminal 2 - Web Server:**
-```bash
-airflow webserver --port 8080
+kubectl apply -f kubernetes/airflow.yaml
+kubectl get pods -n airflow
 ```
 
 ### Step 3: Access the Web UI
+- Port-forward: `kubectl port-forward svc/airflow-webserver 8080:8080 -n airflow`
 - Open browser: **http://localhost:8080**
 - Login: `admin` / `admin`
 
 ### Step 4: Enable and Run a DAG
 
 1. **Find DAGs list** - You should see:
-   - `demo_dag` - Simple example
-   - `etl_example_dag` - Full pipeline
+  - `demo_dag` - Simple example
+  - `etl_example_dag` - Full pipeline
 
 2. **Enable `demo_dag`:**
-   - Click on `demo_dag` in the list
-   - Toggle the **Enable** switch (top left)
+  - Click on `demo_dag` in the list
+  - Toggle the **Enable** switch (top left)
 
 3. **Trigger the DAG:**
-   - Click **Trigger DAG** button
-   - Select **Execute**
+  - Click **Trigger DAG** button
+  - Select **Execute**
 
 4. **View Results:**
-   - Refresh the page
-   - Click on the DAG run (shown in the calendar/timeline)
-   - Click on tasks to see logs
+  - Refresh the page
+  - Click on the DAG run (shown in the calendar/timeline)
+  - Click on tasks to see logs
 
 ---
 
@@ -71,32 +57,18 @@ airflow webserver --port 8080
 
 ---
 
-## ✅ Test Your Setup
+## ✅ Test Your Setup (DAGs)
 
 ### Run demo_dag (Simplest)
-```bash
-# From command line
-airflow dags trigger -d demo_dag
-
-# View in UI
-# - It will show 2 tasks (start → end)
-# - Should complete in seconds
-```
+Use the Airflow UI:
+- Enable `demo_dag`
+- Click "Trigger DAG"
 
 ### Run etl_example_dag (Full Pipeline)
-```bash
-# From command line
-airflow dags trigger -d etl_example_dag
-
-# What happens:
-# 1. Extract reads data/raw/sample_source_a.csv
-# 2. Transform aggregates by date
-# 3. Load verifies data/processed/sales_daily_summary.csv
-
-# Check results
-# - Open data/processed/sales_daily_summary.csv
-# - Should have aggregated data by date
-```
+In UI, trigger `etl_example_dag`:
+- Extract reads `data/raw/sample_source_a.csv`
+- Transform aggregates by date
+- Load writes `data/processed/sales_daily_summary.csv`
 
 ---
 
@@ -107,29 +79,16 @@ airflow dags trigger -d etl_example_dag
 2. Look for any error messages
 
 ### Test Individual Tasks
-```bash
-# Test a single task without running full DAG
-airflow tasks test demo_dag start 2024-01-01
-```
+Use UI task logs for debugging (recommended in K8s).
 
 ### List All DAGs
-```bash
-airflow dags list
-```
+Use the Airflow UI DAGs page.
 
 ### View Task Details
-```bash
-airflow tasks list -d demo_dag
-```
+Use the Airflow UI task details page.
 
 ### Pause/Unpause DAG
-```bash
-# Stop DAG from running on schedule
-airflow dags pause demo_dag
-
-# Resume
-airflow dags unpause demo_dag
-```
+Use the UI to pause/unpause DAGs.
 
 ---
 

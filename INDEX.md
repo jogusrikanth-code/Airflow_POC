@@ -8,8 +8,8 @@ Your Airflow POC includes comprehensive documentation to help you learn and succ
 
 **New to Airflow?** Start here:
 
-1. **[README.md](README.md)** - Project overview and quick start
-2. **[QUICKSTART.md](QUICKSTART.md)** - Get Airflow running in 5 minutes
+1. **[docs/README.md](docs/README.md)** - Project overview and Kubernetes quickstart
+2. **[docs/QUICKSTART.md](docs/QUICKSTART.md)** - Kubernetes deploy steps and UI usage
 3. Open http://localhost:8080 and explore
 
 ---
@@ -19,9 +19,9 @@ Your Airflow POC includes comprehensive documentation to help you learn and succ
 Follow this sequence for optimal learning:
 
 ### Phase 1: Basics (Week 1)
-- Read: [README.md](README.md) - 10 min
-- Read: [AIRFLOW_BASICS.md](AIRFLOW_BASICS.md) - 30 min
-- Do: [QUICKSTART.md](QUICKSTART.md) - 20 min
+- Read: [docs/README.md](docs/README.md) - 10 min
+- Read: [docs/AIRFLOW_BASICS.md](docs/AIRFLOW_BASICS.md) - 30 min
+- Do: [docs/QUICKSTART.md](docs/QUICKSTART.md) - 20 min
 - Explore: Run `demo_dag` in Web UI - 30 min
 
 ### Phase 2: Building (Week 2)
@@ -30,42 +30,45 @@ Follow this sequence for optimal learning:
 - Create: Your own ETL DAG - 1-2 hours
 
 ### Phase 3: Organization (Week 3)
-- Read: [FOLDER_STRUCTURE.md](FOLDER_STRUCTURE.md) - 20 min
+- Read: [docs/FOLDER_STRUCTURE.md](docs/FOLDER_STRUCTURE.md) - 20 min
 - Organize: Your project files
 - Document: Your DAGs
 
 ### Phase 4+: Advanced Topics
-- Use: [LEARNING_CHECKLIST.md](LEARNING_CHECKLIST.md) - Track progress
+- Use: [docs/LEARNING_CHECKLIST.md](docs/LEARNING_CHECKLIST.md) - Track progress
 - Explore: Phases 3-6 in the checklist
 
 ---
 
-## 📄 Documentation Files
+# Documentation Index (Airflow POC)
 
-### [README.md](README.md)
+Use this index to navigate the latest project documentation.
 **Purpose**: Project overview and getting started guide
 
-**Contains**:
-- What Airflow is and why use it
-- Complete project structure
-- How to start Airflow
-- List of example DAGs
-- Key concepts explained
+ - docs/README.md — Kubernetes-first quickstart and runbook
+ - docs/AIRFLOW_BASICS.md — Core concepts, DAGs, operators, scheduling
+ - docs/ENTERPRISE_INTEGRATION.md — Connectors and enterprise DAG overview
+ - docs/ENTERPRISE_POC_SUMMARY.md — POC scope, goals, and outcomes
+ - docs/SETUP_SUMMARY.md — Environment, tools, and decisions
+ - docs/LEARNING_CHECKLIST.md — Track learning and validation
 - CLI commands reference
 - Learning path outline
-- Troubleshooting guide
-
+ - kubernetes/README.md — Deployment guide (Windows PowerShell)
+ - kubernetes/postgres.yaml — PostgreSQL deployment
+ - kubernetes/airflow.yaml — Airflow stack (webserver, scheduler, worker, Redis)
+ - kubernetes/values.yaml — Helm chart reference
+ - KUBERNETES_CLEANUP_SUMMARY.md — Repo & manifests modernization
 **Length**: ~400 lines | **Time to read**: 15-20 minutes
 
-**When to use**:
-- First time learning about the project
-- Understanding overall structure
+ - dags/ — All DAG definitions (including enterprise_integration_dag)
+ - src/ — Connectors, extract/transform/load utilities
+ - plugins/ — Custom operators and hooks
 - Quick reference for commands
 - Troubleshooting issues
-
----
-
-### [AIRFLOW_BASICS.md](AIRFLOW_BASICS.md)
+ - Access Airflow UI: http://localhost:8080 (after `kubectl port-forward`)
+ - Deploy PostgreSQL: `kubectl apply -f kubernetes/postgres.yaml`
+ - Deploy Airflow: `kubectl apply -f kubernetes/airflow.yaml`
+### [docs/AIRFLOW_BASICS.md](docs/AIRFLOW_BASICS.md)
 **Purpose**: Comprehensive learning guide for Airflow concepts
 
 **Contains**:
@@ -102,7 +105,7 @@ Follow this sequence for optimal learning:
 
 ---
 
-### [QUICKSTART.md](QUICKSTART.md)
+### [docs/QUICKSTART.md](docs/QUICKSTART.md)
 **Purpose**: Get Airflow running in 5 minutes
 
 **Contains**:
@@ -129,7 +132,7 @@ Follow this sequence for optimal learning:
 
 ---
 
-### [FOLDER_STRUCTURE.md](FOLDER_STRUCTURE.md)
+### [docs/FOLDER_STRUCTURE.md](docs/FOLDER_STRUCTURE.md)
 **Purpose**: Understand and organize your project files
 
 **Contains**:
@@ -155,7 +158,7 @@ Follow this sequence for optimal learning:
 
 ---
 
-### [LEARNING_CHECKLIST.md](LEARNING_CHECKLIST.md)
+### [docs/LEARNING_CHECKLIST.md](docs/LEARNING_CHECKLIST.md)
 **Purpose**: Track your learning progress through 6 phases
 
 **Contains**:
@@ -206,7 +209,7 @@ Follow this sequence for optimal learning:
 
 ---
 
-### [SETUP_SUMMARY.md](SETUP_SUMMARY.md)
+### [docs/SETUP_SUMMARY.md](docs/SETUP_SUMMARY.md)
 **Purpose**: Summary of all improvements and how to use them
 
 **Contains**:
@@ -400,12 +403,12 @@ Here's what's in each doc:
 
 | Document | Purpose | Read Time |
 |----------|---------|-----------|
-| [README.md](README.md) | Overview & setup | 15 min |
-| [QUICKSTART.md](QUICKSTART.md) | Get running | 5 min |
-| [AIRFLOW_BASICS.md](AIRFLOW_BASICS.md) | Learn concepts | 45 min |
-| [FOLDER_STRUCTURE.md](FOLDER_STRUCTURE.md) | Organization | 20 min |
-| [LEARNING_CHECKLIST.md](LEARNING_CHECKLIST.md) | Track progress | 10 min |
-| [SETUP_SUMMARY.md](SETUP_SUMMARY.md) | Overview | 10 min |
+| [docs/README.md](docs/README.md) | Overview & setup | 15 min |
+| [docs/QUICKSTART.md](docs/QUICKSTART.md) | Get running | 5 min |
+| [docs/AIRFLOW_BASICS.md](docs/AIRFLOW_BASICS.md) | Learn concepts | 45 min |
+| [docs/FOLDER_STRUCTURE.md](docs/FOLDER_STRUCTURE.md) | Organization | 20 min |
+| [docs/LEARNING_CHECKLIST.md](docs/LEARNING_CHECKLIST.md) | Track progress | 10 min |
+| [docs/SETUP_SUMMARY.md](docs/SETUP_SUMMARY.md) | Overview | 10 min |
 
 ---
 

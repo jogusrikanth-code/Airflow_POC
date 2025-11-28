@@ -42,37 +42,25 @@ This directory contains modern Kubernetes manifests for deploying Apache Airflow
 
 ### Step 1: Deploy PostgreSQL
 
-```bash
-kubectl apply -f postgres.yaml
-```
-
-Wait for PostgreSQL pod to be ready:
-
-```bash
+```powershell
+kubectl apply -f kubernetes/postgres.yaml
 kubectl wait --for=condition=ready pod -l app=postgres -n airflow --timeout=300s
 ```
 
 ### Step 2: Deploy Airflow
 
-```bash
-kubectl apply -f airflow.yaml
-```
-
-Wait for all pods to be ready:
-
-```bash
-kubectl wait --for=condition=ready pod -l app=airflow -n airflow --timeout=600s
+```powershell
+kubectl apply -f kubernetes/airflow.yaml
+kubectl get pods -n airflow
 ```
 
 ### Step 3: Access Airflow UI
 
 Port-forward to the webserver:
 
-```bash
+```powershell
 kubectl port-forward svc/airflow-webserver 8080:8080 -n airflow
 ```
-
-Open browser: `http://localhost:8080`
 
 **Default Credentials:**
 - Username: `admin`
@@ -82,14 +70,14 @@ Open browser: `http://localhost:8080`
 
 ### View Pods
 
-```bash
+```powershell
 kubectl get pods -n airflow
 kubectl describe pod <pod-name> -n airflow
 ```
 
 ### View Logs
 
-```bash
+```powershell
 # Webserver logs
 kubectl logs -f deployment/airflow-webserver -n airflow
 
@@ -105,19 +93,17 @@ kubectl logs -f deployment/postgres -n airflow
 
 ### Check Services
 
-```bash
+```powershell
 kubectl get svc -n airflow
 ```
 
 ### Delete Everything
 
-```bash
+```powershell
 kubectl delete namespace airflow
 ```
 
 ## Configuration
-
-### Environment Variables
 
 All configuration is managed via:
 - **ConfigMap**: `airflow-config` - Airflow settings
@@ -169,14 +155,14 @@ kubectl scale statefulset/airflow-worker -n airflow --replicas=3
 ### Pods stuck in Init:0/1
 
 Check init container logs:
-```bash
+```powershell
 kubectl logs <pod-name> -c airflow-init -n airflow
 ```
 
 ### PostgreSQL connection errors
 
 Verify PostgreSQL is running:
-```bash
+```powershell
 kubectl get svc postgres -n airflow
 kubectl exec -it <postgres-pod> -n airflow -- psql -U airflow -d airflow -c "SELECT 1"
 ```
@@ -184,7 +170,7 @@ kubectl exec -it <postgres-pod> -n airflow -- psql -U airflow -d airflow -c "SEL
 ### Redis connection errors
 
 Verify Redis is running:
-```bash
+```powershell
 kubectl get svc redis -n airflow
 kubectl exec -it <redis-pod> -n airflow -- redis-cli ping
 ```
@@ -192,9 +178,9 @@ kubectl exec -it <redis-pod> -n airflow -- redis-cli ping
 ### Out of memory errors
 
 Increase resource limits in `airflow.yaml` and redeploy:
-```bash
+```powershell
 kubectl delete deployment airflow-webserver -n airflow
-kubectl apply -f airflow.yaml
+kubectl apply -f kubernetes/airflow.yaml
 ```
 
 ## Migration to Helm (Future)
@@ -221,9 +207,6 @@ For production deployments, consider:
 5. **Monitoring** - Add Prometheus and Grafana for metrics
 6. **Backup** - Backup PostgreSQL data regularly
 7. **Network Policies** - Implement NetworkPolicies for security
-8. **Pod Disruption Budgets** - Ensure high availability during cluster updates
-
-## References
 
 - [Apache Airflow Kubernetes Docs](https://airflow.apache.org/docs/apache-airflow/stable/kubernetes.html)
 - [Airflow Helm Chart](https://airflow.apache.org/docs/helm-chart/stable/index.html)

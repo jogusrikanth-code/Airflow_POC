@@ -1,0 +1,1 @@
+Moved document index. See root `INDEX.md` for quick links; this copy exists to keep navigation consistent within `docs/`.

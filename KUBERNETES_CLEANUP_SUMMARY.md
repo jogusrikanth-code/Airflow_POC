@@ -8,28 +8,21 @@
 - ❌ `postgres-deployment.yaml` - Redundant file
 
 ### New Modern Manifests Created
-- ✅ `kubernetes/postgres.yaml` - Production-ready PostgreSQL
-- ✅ `kubernetes/airflow.yaml` - Production-ready Airflow stack
-- ✅ `kubernetes/values.yaml` - Helm chart reference
-- ✅ `kubernetes/README.md` - Complete deployment guide
+- ✅ `kubernetes/postgres.yaml` — Production-ready PostgreSQL (PVC, probes, security context)
+- ✅ `kubernetes/airflow.yaml` — Airflow stack (webserver, scheduler, worker, Redis)
+- ✅ `kubernetes/values.yaml` — Helm chart reference for future upgrades
+- ✅ `kubernetes/README.md` — Complete deployment guide (Windows PowerShell commands)
 
 ## Key Improvements 🚀
-
 ### Best Practices Implemented
-
-| Feature | Old | New |
-|---------|-----|-----|
-| **Security Context** | ❌ | ✅ Non-root user (50000) |
-| **Resource Limits** | ❌ | ✅ CPU/Memory requests & limits |
-| **Probes** | Basic | ✅ Advanced with failureThreshold |
-| **StatefulSets** | ❌ | ✅ For Scheduler & Workers |
-| **Secrets Management** | ConfigMap | ✅ Separate Secret for credentials |
-| **Init Containers** | ❌ | ✅ DB upgrade on startup |
-| **Image Pull Policy** | ❌ | ✅ IfNotPresent to reduce rate limits |
-| **RBAC** | Basic | ✅ Minimal required permissions |
-| **Health Checks** | Simple | ✅ Comprehensive liveness/readiness |
-
-### Architecture Improvements
+| Area | Old | New |
+|---|---|---|
+| Security Context | ❌ | ✅ Non-root user (50000) |
+| Probes | Basic | ✅ Advanced with failureThreshold |
+| StatefulSets | ❌ | ✅ For Scheduler & Workers |
+| Init Containers | ❌ | ✅ DB upgrade + admin bootstrap |
+| Image Pull Policy | ❌ | ✅ IfNotPresent to reduce pulls |
+| Health Checks | Simple | ✅ Comprehensive liveness/readiness |
 
 **Old Setup:**
 - Basic deployments only
@@ -97,27 +90,29 @@ Health Checks: Yes (ping command)
 
 ## Deployment Instructions
 
-### Quick Start
+### Quick Start (Windows PowerShell)
 
-```bash
+```powershell
 # 1. Deploy PostgreSQL
-kubectl apply -f kubernetes/postgres.yaml
+kubectl apply -f "kubernetes/postgres.yaml"
 
 # 2. Deploy Airflow
-kubectl apply -f kubernetes/airflow.yaml
+kubectl apply -f "kubernetes/airflow.yaml"
 
-# 3. Access UI
+# 3. Access UI (try 8080, fallback 9090)
 kubectl port-forward svc/airflow-webserver 8080:8080 -n airflow
+# If 8080 is busy:
+kubectl port-forward svc/airflow-webserver 9090:8080 -n airflow
 
 # 4. Open browser
-# http://localhost:8080
+# http://localhost:8080  (or http://localhost:9090)
 # Username: admin
 # Password: admin
 ```
 
 ### Verify Deployment
 
-```bash
+```powershell
 # Check pods
 kubectl get pods -n airflow
 
@@ -145,7 +140,7 @@ Contains sensitive data:
 
 ### How to Update
 
-```bash
+```powershell
 # Edit ConfigMap
 kubectl edit configmap airflow-config -n airflow
 
@@ -156,10 +151,11 @@ kubectl edit secret airflow-secrets -n airflow
 ## Next Steps
 
 1. **Deploy New Manifests**
-   ```bash
+   ```powershell
+   # Caution: deleting the namespace removes all resources in it
    kubectl delete namespace airflow
-   kubectl apply -f kubernetes/postgres.yaml
-   kubectl apply -f kubernetes/airflow.yaml
+   kubectl apply -f "kubernetes/postgres.yaml"
+   kubectl apply -f "kubernetes/airflow.yaml"
    ```
 
 2. **Verify All Pods Running**
@@ -168,14 +164,14 @@ kubectl edit secret airflow-secrets -n airflow
    ```
 
 3. **Test `enterprise_integration_dag`**
-   - Access UI at http://localhost:8080
+   - Access UI at http://localhost:8080 (or http://localhost:9090)
    - Enable the DAG
    - Trigger a test run
    - Monitor execution
 
 4. **Check DAG Sync**
-   ```bash
-   kubectl logs -f deployment/airflow-webserver -n airflow | grep "DAG"
+   ```powershell
+   kubectl logs -f deployment/airflow-webserver -n airflow | Select-String "DAG"
    ```
 
 ## Production Readiness Checklist
@@ -193,25 +189,25 @@ kubectl edit secret airflow-secrets -n airflow
 ## Troubleshooting
 
 ### Check Pod Status
-```bash
+```powershell
 kubectl describe pod <pod-name> -n airflow
 ```
 
 ### View Logs
-```bash
+```powershell
 kubectl logs <pod-name> -n airflow
 ```
 
 ### Restart a Component
-```bash
+```powershell
 kubectl rollout restart deployment/airflow-webserver -n airflow
 ```
 
 ### Delete and Redeploy
-```bash
+```powershell
 kubectl delete namespace airflow
-kubectl apply -f kubernetes/postgres.yaml
-kubectl apply -f kubernetes/airflow.yaml
+kubectl apply -f "kubernetes/postgres.yaml"
+kubectl apply -f "kubernetes/airflow.yaml"
 ```
 
 ## References

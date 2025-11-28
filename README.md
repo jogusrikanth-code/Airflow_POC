@@ -1,55 +1,93 @@
-# Airflow POC - Learning Project
+# Airflow POC — Kubernetes-first Setup
 
-## Project Overview
-This is a beginner-friendly Apache Airflow proof of concept (POC) designed to understand core Airflow concepts through practical examples.
+## Overview
+This repository contains a Kubernetes-first Apache Airflow POC running on Docker Desktop’s local Kubernetes. It includes enterprise connectors, example DAGs, and production-lean K8s manifests to run Airflow (webserver, scheduler, worker) with PostgreSQL and Redis.
 
----
+- Run locally on Docker Desktop + Kubernetes
+- Deploy with simple `kubectl apply` commands
+- Access Airflow UI via port-forward or LoadBalancer
+
+## Quick Start
+
+1) Deploy PostgreSQL
+```
+kubectl apply -f kubernetes/postgres.yaml
+kubectl wait --for=condition=ready pod -l app=postgres -n airflow --timeout=300s
+```
+
+2) Deploy Airflow (CeleryExecutor + Redis)
+```
+kubectl apply -f kubernetes/airflow.yaml
+kubectl get pods -n airflow
+```
+
+3) Access Airflow UI
+```
+kubectl port-forward svc/airflow-webserver 8080:8080 -n airflow
+```
+Open http://localhost:8080 (username: `admin`, password: `admin`).
 
 ## 📁 Folder Structure
 
 ```
 Airflow_POC/
-├── README.md                    # This file - Project documentation
-├── AIRFLOW_BASICS.md           # Learning guide for Airflow concepts
-├── kubernetes/                 # Kubernetes deployment manifests
-│   ├── README.md               # K8s deployment guide
-│   ├── postgres.yaml           # PostgreSQL deployment
-│   ├── airflow.yaml            # Airflow components (webserver, scheduler, worker)
-│   └── values.yaml             # Helm chart reference values
+├── README.md
+├── docs/                         # Centralized documentation
+│   ├── INDEX.md                  # Documentation map and quick links
+│   ├── AIRFLOW_BASICS.md         # Airflow learning guide
+│   ├── ENTERPRISE_INTEGRATION.md # Enterprise connectors & DAG overview
+│   ├── ENTERPRISE_POC_SUMMARY.md # POC scope and outcomes
+│   ├── SETUP_SUMMARY.md          # Setup decisions and environment notes
+│   ├── LEARNING_CHECKLIST.md     # Learning and validation checklist
+│   └── QUICKSTART.md             # Kubernetes quickstart
+├── KUBERNETES_CLEANUP_SUMMARY.md # Repo & K8s modernization summary
 │
-├── dags/                       # DAG definitions (Airflow will scan this folder)
+├── kubernetes/                   # Kubernetes deployment manifests
+│   ├── README.md                 # K8s deployment guide
+│   ├── postgres.yaml             # PostgreSQL deployment
+│   ├── airflow.yaml              # Airflow components (webserver, scheduler, worker, Redis)
+│   └── values.yaml               # Helm chart reference values
+│
+├── dags/                         # DAG definitions scanned by Airflow
 │   ├── __init__.py
-│   ├── demo_dag.py             # Simple example DAG with 2 tasks
-│   ├── etl_example_dag.py      # Full ETL pipeline example
-│   └── enterprise_integration_dag.py  # Enterprise integration DAG
+│   ├── demo_dag.py
+│   ├── etl_example_dag.py
+│   └── enterprise_integration_dag.py
 │
-├── src/                        # Application source code
-│   ├── __init__.py
-│   ├── connectors/             # Data source connectors
-│   │   ├── onprem_connector.py # On-premise DB connector
-│   │   ├── azure_connector.py  # Azure Blob Storage connector
-│   │   ├── databricks_connector.py  # Databricks connector
-│   │   └── powerbi_connector.py # Power BI connector
-│   ├── extract/                # Extract logic
-│   │   └── extract_from_source_a.py
-│   ├── transform/              # Transform logic
-│   │   └── transform_sales_data.py
-│   └── load/                   # Load logic
-│       └── load_to_dw.py
+├── src/                          # Application source code
+│   ├── connectors/               # On-prem, Azure, Databricks, PowerBI
+│   ├── extract/
+│   ├── transform/
+│   └── load/
 │
-├── data/                       # Data storage
-│   ├── raw/                    # Input data
-│   │   └── sample_source_a.csv # Sample CSV file
-│   └── processed/              # Output data after ETL
+├── data/                         # Sample data for local tests
+│   ├── raw/
+│   └── processed/
 │
-├── plugins/                    # Custom Airflow plugins
-│   ├── hooks/
-│   └── operators/
-│
-└── tests/                      # Unit tests
+├── plugins/                      # Custom Airflow plugins
+└── archive/                      # Archived/legacy files
 ```
 
----
+## Runbook
+
+- Check pods: `kubectl get pods -n airflow`
+- Check services: `kubectl get svc -n airflow`
+- Logs:
+  - Webserver: `kubectl logs -f deployment/airflow-webserver -n airflow`
+  - Scheduler: `kubectl logs -f statefulset/airflow-scheduler -n airflow`
+  - Worker: `kubectl logs -f statefulset/airflow-worker -n airflow`
+
+## Notes
+
+- Images use `IfNotPresent` to minimize Docker Hub pulls.
+- For rate limit issues, `docker login` before deploying.
+- To reset cluster on Docker Desktop: Settings → Kubernetes → Reset Cluster.
+
+## Next Steps
+
+- Configure Airflow Connections for your sources (UI → Admin → Connections).
+- Enable and run `enterprise_integration_dag` from the UI.
+- Consider migrating to Helm using `kubernetes/values.yaml` as baseline.
 
 ## 🚀 Quick Start
 
