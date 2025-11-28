@@ -56,10 +56,11 @@ kubectl get pods -n airflow
 
 ### Step 3: Access Airflow UI
 
-Port-forward to the webserver:
+Port-forward to the webserver (try 8080, fallback 9090):
 
 ```powershell
 kubectl port-forward svc/airflow-webserver 8080:8080 -n airflow
+kubectl port-forward svc/airflow-webserver 9090:8080 -n airflow
 ```
 
 **Default Credentials:**
@@ -111,7 +112,7 @@ All configuration is managed via:
 
 To update configuration:
 
-```bash
+```powershell
 kubectl edit configmap airflow-config -n airflow
 kubectl edit secret airflow-secrets -n airflow
 ```
@@ -134,7 +135,7 @@ resources:
 
 To scale Celery workers:
 
-```bash
+```powershell
 kubectl scale statefulset/airflow-worker -n airflow --replicas=3
 ```
 
@@ -187,13 +188,11 @@ kubectl apply -f kubernetes/airflow.yaml
 
 To deploy using Helm chart instead:
 
-```bash
+```powershell
 helm repo add apache-airflow https://airflow.apache.org
 helm repo update
 
-helm install airflow apache-airflow/airflow \
-  -f values.yaml \
-  --namespace airflow
+helm install airflow apache-airflow/airflow -f values.yaml --namespace airflow
 ```
 
 ## Production Considerations

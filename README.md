@@ -24,15 +24,17 @@ kubectl get pods -n airflow
 3) Access Airflow UI
 ```
 kubectl port-forward svc/airflow-webserver 8080:8080 -n airflow
+# If 8080 is busy:
+kubectl port-forward svc/airflow-webserver 9090:8080 -n airflow
 ```
-Open http://localhost:8080 (username: `admin`, password: `admin`).
+Open http://localhost:8080 (or http://localhost:9090) (username: `admin`, password: `admin`).
 
 ## 📁 Folder Structure
 
 ```
 Airflow_POC/
 ├── README.md
-├── docs/                         # Centralized documentation
+├── docs/                         # Centralized documentation (use these links)
 │   ├── INDEX.md                  # Documentation map and quick links
 │   ├── AIRFLOW_BASICS.md         # Airflow learning guide
 │   ├── ENTERPRISE_INTEGRATION.md # Enterprise connectors & DAG overview
@@ -89,42 +91,12 @@ Airflow_POC/
 - Enable and run `enterprise_integration_dag` from the UI.
 - Consider migrating to Helm using `kubernetes/values.yaml` as baseline.
 
-## 🚀 Quick Start
-
-### 1. **Initial Setup**
-```bash
-# Initialize Airflow database
-airflow db init
-
-# Create default admin user
-airflow users create \
-  --username admin \
-  --password admin \
-  --firstname Admin \
-  --lastname User \
-  --role Admin \
-  --email admin@example.com
-```
-
-### 2. **Start Airflow Components**
-```bash
-# Terminal 1: Start the scheduler
-airflow scheduler
-
-# Terminal 2: Start the web server
-airflow webserver --port 8080
-```
-
-### 3. **Access the Web UI**
-- Open browser: `http://localhost:8080`
-- Login with `admin` / `admin`
-- Enable DAGs to start running
-
-### 4. **Using Docker (Alternative)**
-```bash
-cd docker
-docker-compose up
-```
+## 📚 Documentation Quick Links
+- Overview & Setup: `docs/README.md`
+- Quickstart (Kubernetes): `docs/QUICKSTART.md`
+- Airflow Basics: `docs/AIRFLOW_BASICS.md`
+- Folder Structure: `docs/FOLDER_STRUCTURE.md`
+- Learning Checklist: `docs/LEARNING_CHECKLIST.md`
 
 ---
 
@@ -191,30 +163,13 @@ date,amount
 
 ---
 
-## 🛠️ Common Airflow CLI Commands
-
-```bash
-# List all DAGs
-airflow dags list
-
-# Trigger a DAG
-airflow dags trigger -d demo_dag
-
-# View task logs
-airflow tasks logs -d demo_dag -t start -e 2024-01-01
-
-# List task instances
-airflow tasks list -d demo_dag
-
-# Test a task
-airflow tasks test demo_dag start 2024-01-01
-
-# Validate DAG
-airflow dags validate
-
-# Pause/unpause DAG
-airflow dags pause demo_dag
-airflow dags unpause demo_dag
+## 🛠️ Common Kubernetes Commands
+```
+kubectl get pods -n airflow
+kubectl get svc -n airflow
+kubectl logs -f deployment/airflow-webserver -n airflow
+kubectl logs -f statefulset/airflow-scheduler -n airflow
+kubectl logs -f statefulset/airflow-worker -n airflow
 ```
 
 ---
