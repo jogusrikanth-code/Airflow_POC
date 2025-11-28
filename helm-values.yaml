@@ -1,0 +1,38 @@
+# Airflow Helm Chart Values
+# Using external PostgreSQL database
+
+# Database Configuration (external)
+postgresql:
+  enabled: false
+
+externalDatabase:
+  type: postgresql
+  host: my-postgres-postgresql  # K8s service name
+  port: 5432
+  database: postgres
+  user: postgres
+  password: airflowpass
+
+# Redis for task queue
+redis:
+  enabled: true
+
+# Executor Configuration
+config:
+  core:
+    executor: CeleryExecutor
+
+# DAG Configuration
+dags:
+  persistence:
+    enabled: false
+
+# Webserver configuration
+webserver:
+  replicas: 1
+
+# Scheduler configuration
+scheduler: {}
+
+# Worker configuration  
+workers: {}

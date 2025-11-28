@@ -11,19 +11,25 @@ This is a beginner-friendly Apache Airflow proof of concept (POC) designed to un
 Airflow_POC/
 ├── README.md                    # This file - Project documentation
 ├── AIRFLOW_BASICS.md           # Learning guide for Airflow concepts
-├── airflow_home/               # Airflow home directory
-│   ├── airflow.cfg             # Airflow configuration
-│   ├── webserver_config.py     # Web UI configuration
-│   ├── airflow.db              # SQLite database (auto-created)
-│   └── logs/                   # Task execution logs
+├── kubernetes/                 # Kubernetes deployment manifests
+│   ├── README.md               # K8s deployment guide
+│   ├── postgres.yaml           # PostgreSQL deployment
+│   ├── airflow.yaml            # Airflow components (webserver, scheduler, worker)
+│   └── values.yaml             # Helm chart reference values
 │
 ├── dags/                       # DAG definitions (Airflow will scan this folder)
 │   ├── __init__.py
 │   ├── demo_dag.py             # Simple example DAG with 2 tasks
-│   └── etl_example_dag.py      # Full ETL pipeline example
+│   ├── etl_example_dag.py      # Full ETL pipeline example
+│   └── enterprise_integration_dag.py  # Enterprise integration DAG
 │
 ├── src/                        # Application source code
 │   ├── __init__.py
+│   ├── connectors/             # Data source connectors
+│   │   ├── onprem_connector.py # On-premise DB connector
+│   │   ├── azure_connector.py  # Azure Blob Storage connector
+│   │   ├── databricks_connector.py  # Databricks connector
+│   │   └── powerbi_connector.py # Power BI connector
 │   ├── extract/                # Extract logic
 │   │   └── extract_from_source_a.py
 │   ├── transform/              # Transform logic
@@ -36,15 +42,10 @@ Airflow_POC/
 │   │   └── sample_source_a.csv # Sample CSV file
 │   └── processed/              # Output data after ETL
 │
-├── docker/                     # Docker setup
-│   └── docker-compose.yaml     # Docker Compose configuration
-│
-├── plugins/                    # Custom Airflow plugins (optional)
+├── plugins/                    # Custom Airflow plugins
 │   ├── hooks/
 │   └── operators/
 │
-├── config/                     # Configuration files
-├── reports/                    # Output reports
 └── tests/                      # Unit tests
 ```
 

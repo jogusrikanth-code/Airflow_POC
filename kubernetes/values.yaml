@@ -1,0 +1,125 @@
+# Airflow Helm Chart Values
+# Reference: https://airflow.apache.org/docs/helm-chart/stable/index.html
+
+# Namespace
+namespace: airflow
+
+# Default Airflow image
+defaultAirflowRepository: apache/airflow
+defaultAirflowTag: "2.9.3"
+
+# PostgreSQL Configuration
+postgresql:
+  enabled: false  # Using external PostgreSQL
+
+externalDatabase:
+  type: postgresql
+  host: postgres
+  port: 5432
+  database: airflow
+  user: airflow
+  passwordSecret: postgres-secret
+  passwordSecretKey: password
+
+# Redis Configuration
+redis:
+  enabled: true
+  architecture: standalone
+  auth:
+    enabled: false
+  master:
+    persistence:
+      enabled: false
+
+# Executor Configuration
+executor: CeleryExecutor
+
+# Airflow Core Configuration
+config:
+  core:
+    dags_folder: /opt/airflow/dags
+    executor: CeleryExecutor
+    max_active_runs_per_dag: 1
+    parallelism: 4
+    dag_concurrency: 2
+    max_active_tasks_per_dag: 16
+    fernet_key: d60qlHqPR3w-jNiCIe_3T9LvQd1VZ1UqU1p-jEiMCFA=
+    log_level: INFO
+  celery:
+    worker_concurrency: 2
+  database:
+    sql_alchemy_conn_secret: airflow-secrets
+    sql_alchemy_conn_secret_key: sql_alchemy_conn
+
+# Webserver Configuration
+webserver:
+  replicas: 1
+  service:
+    type: LoadBalancer
+    port: 8080
+  resources:
+    requests:
+      cpu: "500m"
+      memory: "512Mi"
+    limits:
+      cpu: "1000m"
+      memory: "1024Mi"
+
+# Scheduler Configuration
+scheduler:
+  replicas: 1
+  resources:
+    requests:
+      cpu: "500m"
+      memory: "512Mi"
+    limits:
+      cpu: "1000m"
+      memory: "1024Mi"
+
+# Worker Configuration
+workers:
+  replicas: 1
+  resources:
+    requests:
+      cpu: "500m"
+      memory: "512Mi"
+    limits:
+      cpu: "1000m"
+      memory: "1024Mi"
+
+# DAG Configuration
+dags:
+  persistence:
+    enabled: true
+    size: 1Gi
+    accessMode: ReadWriteOnce
+
+# Logs Configuration
+logs:
+  persistence:
+    enabled: true
+    size: 5Gi
+    accessMode: ReadWriteOnce
+
+# Security Context
+securityContext:
+  runAsUser: 50000
+  fsGroup: 0
+
+# RBAC
+rbac:
+  create: true
+
+# Service Account
+serviceAccount:
+  create: true
+  name: airflow
+
+# Resource Quotas
+resources:
+  requests:
+    cpu: "1"
+    memory: "2Gi"
+  limits:
+    cpu: "2"
+    memory: "4Gi"

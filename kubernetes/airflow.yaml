@@ -1,0 +1,496 @@
+---
+# Redis Service for Celery broker
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+  namespace: airflow
+  labels:
+    app: redis
+    tier: broker
+spec:
+  type: ClusterIP
+  ports:
+    - port: 6379
+      targetPort: 6379
+      protocol: TCP
+      name: redis
+  selector:
+    app: redis
+
+---
+# Redis Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis
+  namespace: airflow
+  labels:
+    app: redis
+    tier: broker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis
+  template:
+    metadata:
+      labels:
+        app: redis
+        tier: broker
+    spec:
+      securityContext:
+        fsGroup: 999
+      containers:
+        - name: redis
+          image: redis:7-alpine
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 6379
+              name: redis
+              protocol: TCP
+          livenessProbe:
+            exec:
+              command:
+                - redis-cli
+                - ping
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+          readinessProbe:
+            exec:
+              command:
+                - redis-cli
+                - ping
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 1
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "50m"
+            limits:
+              memory: "256Mi"
+              cpu: "200m"
+
+---
+# ConfigMap for Airflow configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: airflow-config
+  namespace: airflow
+  labels:
+    app: airflow
+data:
+  AIRFLOW__CORE__DAGS_FOLDER: /opt/airflow/dags
+  AIRFLOW__CORE__EXECUTOR: CeleryExecutor
+  AIRFLOW__CORE__FERNET_KEY: d60qlHqPR3w-jNiCIe_3T9LvQd1VZ1UqU1p-jEiMCFA=
+  AIRFLOW__CORE__LOG_LEVEL: INFO
+  AIRFLOW__CORE__MAX_ACTIVE_RUNS_PER_DAG: "1"
+  AIRFLOW__CORE__PARALLELISM: "4"
+  AIRFLOW__CORE__DAG_CONCURRENCY: "2"
+  AIRFLOW__CORE__MAX_ACTIVE_TASKS_PER_DAG: "16"
+  AIRFLOW__CELERY__WORKER_CONCURRENCY: "2"
+  AIRFLOW_HOME: /opt/airflow
+
+---
+# Secret for Airflow database connection
+apiVersion: v1
+kind: Secret
+metadata:
+  name: airflow-secrets
+  namespace: airflow
+  labels:
+    app: airflow
+type: Opaque
+stringData:
+  sql_alchemy_conn: "postgresql://airflow:airflow@postgres:5432/airflow"
+  celery_broker_url: "redis://redis:6379/0"
+  celery_result_backend: "db+postgresql://airflow:airflow@postgres:5432/airflow"
+
+---
+# ServiceAccount for Airflow
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: airflow
+  namespace: airflow
+  labels:
+    app: airflow
+
+---
+# ClusterRole for Airflow (KubernetesExecutor compatible)
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: airflow
+  labels:
+    app: airflow
+rules:
+  - apiGroups: [""]
+    resources: ["pods", "pods/logs"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["create", "delete", "patch"]
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    verbs: ["get"]
+
+---
+# ClusterRoleBinding for Airflow
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: airflow
+  labels:
+    app: airflow
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: airflow
+subjects:
+  - kind: ServiceAccount
+    name: airflow
+    namespace: airflow
+
+---
+# Airflow Webserver Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: airflow-webserver
+  namespace: airflow
+  labels:
+    app: airflow
+    component: webserver
+spec:
+  type: LoadBalancer
+  ports:
+    - port: 8080
+      targetPort: 8080
+      protocol: TCP
+      name: webserver
+  selector:
+    app: airflow
+    component: webserver
+
+---
+# Airflow Webserver Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: airflow-webserver
+  namespace: airflow
+  labels:
+    app: airflow
+    component: webserver
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: airflow
+      component: webserver
+  template:
+    metadata:
+      labels:
+        app: airflow
+        component: webserver
+    spec:
+      serviceAccountName: airflow
+      securityContext:
+        runAsUser: 50000
+        fsGroup: 0
+      initContainers:
+        - name: airflow-init
+          image: apache/airflow:2.9.3
+          imagePullPolicy: IfNotPresent
+          command:
+            - sh
+            - -c
+            - >
+              airflow db upgrade &&
+              airflow users create --username admin --password admin --firstname Admin
+              --lastname Admin --role Admin --email admin@example.com || true
+          env:
+            - name: AIRFLOW__CORE__SQL_ALCHEMY_CONN
+              valueFrom:
+                secretKeyRef:
+                  name: airflow-secrets
+                  key: sql_alchemy_conn
+            - name: AIRFLOW__CELERY__BROKER_URL
+              valueFrom:
+                secretKeyRef:
+                  name: airflow-secrets
+                  key: celery_broker_url
+            - name: AIRFLOW__CELERY__RESULT_BACKEND
+              valueFrom:
+                secretKeyRef:
+                  name: airflow-secrets
+                  key: celery_result_backend
+            - name: AIRFLOW_HOME
+              value: /opt/airflow
+          envFrom:
+            - configMapRef:
+                name: airflow-config
+      containers:
+        - name: webserver
+          image: apache/airflow:2.9.3
+          imagePullPolicy: IfNotPresent
+          command:
+            - airflow
+            - webserver
+          ports:
+            - containerPort: 8080
+              name: webserver
+          env:
+            - name: AIRFLOW__CORE__SQL_ALCHEMY_CONN
+              valueFrom:
+                secretKeyRef:
+                  name: airflow-secrets
+                  key: sql_alchemy_conn
+            - name: AIRFLOW__CELERY__BROKER_URL
+              valueFrom:
+                secretKeyRef:
+                  name: airflow-secrets
+                  key: celery_broker_url
+            - name: AIRFLOW__CELERY__RESULT_BACKEND
+              valueFrom:
+                secretKeyRef:
+                  name: airflow-secrets
+                  key: celery_result_backend
+            - name: AIRFLOW_HOME
+              value: /opt/airflow
+          envFrom:
+            - configMapRef:
+                name: airflow-config
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          volumeMounts:
+            - name: dags
+              mountPath: /opt/airflow/dags
+            - name: logs
+              mountPath: /opt/airflow/logs
+            - name: plugins
+              mountPath: /opt/airflow/plugins
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "500m"
+            limits:
+              memory: "1024Mi"
+              cpu: "1000m"
+      volumes:
+        - name: dags
+          hostPath:
+            path: /opt/airflow/dags
+            type: DirectoryOrCreate
+        - name: logs
+          emptyDir: {}
+        - name: plugins
+          hostPath:
+            path: /opt/airflow/plugins
+            type: DirectoryOrCreate
+
+---
+# Airflow Scheduler StatefulSet
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: airflow-scheduler
+  namespace: airflow
+  labels:
+    app: airflow
+    component: scheduler
+spec:
+  serviceName: airflow-scheduler
+  replicas: 1
+  selector:
+    matchLabels:
+      app: airflow
+      component: scheduler
+  template:
+    metadata:
+      labels:
+        app: airflow
+        component: scheduler
+    spec:
+      serviceAccountName: airflow
+      securityContext:
+        runAsUser: 50000
+        fsGroup: 0
+      containers:
+        - name: scheduler
+          image: apache/airflow:2.9.3
+          imagePullPolicy: IfNotPresent
+          command:
+            - airflow
+            - scheduler
+          env:
+            - name: AIRFLOW__CORE__SQL_ALCHEMY_CONN
+              valueFrom:
+                secretKeyRef:
+                  name: airflow-secrets
+                  key: sql_alchemy_conn
+            - name: AIRFLOW__CELERY__BROKER_URL
+              valueFrom:
+                secretKeyRef:
+                  name: airflow-secrets
+                  key: celery_broker_url
+            - name: AIRFLOW__CELERY__RESULT_BACKEND
+              valueFrom:
+                secretKeyRef:
+                  name: airflow-secrets
+                  key: celery_result_backend
+            - name: AIRFLOW_HOME
+              value: /opt/airflow
+          envFrom:
+            - configMapRef:
+                name: airflow-config
+          livenessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - CONNECTION_CHECK_MAX_COUNT=0 AIRFLOW__LOGGING__LOGGING_LEVEL=ERROR exec /entrypoint airflow jobs check --job-type SchedulerJob --local
+            initialDelaySeconds: 30
+            periodSeconds: 60
+            timeoutSeconds: 10
+            failureThreshold: 3
+          volumeMounts:
+            - name: dags
+              mountPath: /opt/airflow/dags
+            - name: logs
+              mountPath: /opt/airflow/logs
+            - name: plugins
+              mountPath: /opt/airflow/plugins
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "500m"
+            limits:
+              memory: "1024Mi"
+              cpu: "1000m"
+      volumes:
+        - name: dags
+          hostPath:
+            path: /opt/airflow/dags
+            type: DirectoryOrCreate
+        - name: logs
+          emptyDir: {}
+        - name: plugins
+          hostPath:
+            path: /opt/airflow/plugins
+            type: DirectoryOrCreate
+
+---
+# Airflow Celery Worker StatefulSet
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: airflow-worker
+  namespace: airflow
+  labels:
+    app: airflow
+    component: worker
+spec:
+  serviceName: airflow-worker
+  replicas: 1
+  selector:
+    matchLabels:
+      app: airflow
+      component: worker
+  template:
+    metadata:
+      labels:
+        app: airflow
+        component: worker
+    spec:
+      serviceAccountName: airflow
+      securityContext:
+        runAsUser: 50000
+        fsGroup: 0
+      containers:
+        - name: worker
+          image: apache/airflow:2.9.3
+          imagePullPolicy: IfNotPresent
+          command:
+            - airflow
+            - celery
+            - worker
+          env:
+            - name: AIRFLOW__CORE__SQL_ALCHEMY_CONN
+              valueFrom:
+                secretKeyRef:
+                  name: airflow-secrets
+                  key: sql_alchemy_conn
+            - name: AIRFLOW__CELERY__BROKER_URL
+              valueFrom:
+                secretKeyRef:
+                  name: airflow-secrets
+                  key: celery_broker_url
+            - name: AIRFLOW__CELERY__RESULT_BACKEND
+              valueFrom:
+                secretKeyRef:
+                  name: airflow-secrets
+                  key: celery_result_backend
+            - name: AIRFLOW_HOME
+              value: /opt/airflow
+          envFrom:
+            - configMapRef:
+                name: airflow-config
+          livenessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - CONNECTION_CHECK_MAX_COUNT=0 AIRFLOW__LOGGING__LOGGING_LEVEL=ERROR exec /entrypoint airflow jobs check --job-type CeleryWorkerJob --local
+            initialDelaySeconds: 30
+            periodSeconds: 60
+            timeoutSeconds: 10
+            failureThreshold: 3
+          volumeMounts:
+            - name: dags
+              mountPath: /opt/airflow/dags
+            - name: logs
+              mountPath: /opt/airflow/logs
+            - name: plugins
+              mountPath: /opt/airflow/plugins
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "500m"
+            limits:
+              memory: "1024Mi"
+              cpu: "1000m"
+      volumes:
+        - name: dags
+          hostPath:
+            path: /opt/airflow/dags
+            type: DirectoryOrCreate
+        - name: logs
+          emptyDir: {}
+        - name: plugins
+          hostPath:
+            path: /opt/airflow/plugins
+            type: DirectoryOrCreate
