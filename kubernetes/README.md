@@ -186,14 +186,18 @@ kubectl apply -f kubernetes/airflow.yaml
 
 ## Migration to Helm (Future)
 
-To deploy using Helm chart instead:
+To deploy using Helm chart instead (using `kubernetes/helm-values.yaml`):
 
 ```powershell
 helm repo add apache-airflow https://airflow.apache.org
 helm repo update
 
-helm install airflow apache-airflow/airflow -f values.yaml --namespace airflow
+helm install airflow apache-airflow/airflow -f kubernetes/helm-values.yaml --namespace airflow
 ```
+
+Notes:
+- `kubernetes/helm-values.yaml` is aligned with the raw manifests (CeleryExecutor, external Postgres `postgres`, Redis enabled, non-root user).
+- For production, replace plaintext DB credentials with an existing Kubernetes Secret and enable persistence for DAGs/logs.
 
 ## Production Considerations
 

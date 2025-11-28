@@ -1,0 +1,89 @@
+# Apache Airflow Helm chart values (parity with current K8s manifests)
+
+# Disable embedded Postgres; use existing postgres service in airflow namespace
+postgresql:
+  enabled: false
+
+externalDatabase:
+  type: postgresql
+  host: postgres
+  port: 5432
+  database: airflow
+  user: airflow
+  password: airflowpass # TODO: switch to existingSecret for production
+
+# Enable Redis for CeleryExecutor
+redis:
+  enabled: true
+
+# Airflow image (match raw manifests)
+images:
+  airflow:
+    repository: apache/airflow
+    tag: 2.9.3
+    pullPolicy: IfNotPresent
+
+# Executor & Core config overrides
+config:
+  core:
+    executor: CeleryExecutor
+    load_examples: "False"
+  celery:
+    worker_concurrency: 4
+
+# Bootstrap admin user
+users:
+  - username: admin
+    password: admin
+    role: Admin
+    email: admin@example.com
+    firstName: Admin
+    lastName: User
+
+# DAGs and logs persistence disabled for POC
+dags:
+  persistence:
+    enabled: false
+logs:
+  persistence:
+    enabled: false
+
+webserver:
+  replicas: 1
+  service:
+    type: ClusterIP
+  resources:
+    requests:
+      cpu: 500m
+      memory: 512Mi
+    limits:
+      cpu: 1000m
+      memory: 1024Mi
+
+scheduler:
+  replicas: 1
+  resources:
+    requests:
+      cpu: 500m
+      memory: 512Mi
+    limits:
+      cpu: 1000m
+      memory: 1024Mi
+
+workers:
+  replicas: 1
+  resources:
+    requests:
+      cpu: 500m
+      memory: 512Mi
+    limits:
+      cpu: 1000m
+      memory: 1024Mi
+  autoscaling:
+    enabled: false
+
+# Security: run as airflow user (non-root)
+airflowUser: 50000
+
+flower:
+  enabled: false
