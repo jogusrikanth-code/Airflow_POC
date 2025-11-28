@@ -293,6 +293,8 @@ spec:
               mountPath: /opt/airflow/logs
             - name: plugins
               mountPath: /opt/airflow/plugins
+            - name: src
+              mountPath: /opt/airflow/dags/src
           resources:
             requests:
               memory: "512Mi"
@@ -303,14 +305,18 @@ spec:
       volumes:
         - name: dags
           hostPath:
-            path: /opt/airflow/dags
-            type: DirectoryOrCreate
+            path: /run/desktop/mnt/host/c/Users/sjogu/OneDrive - Spencer Gifts LLC/Documents/Srikanth_Jogu/Airflow_POC/dags
+            type: Directory
         - name: logs
           emptyDir: {}
         - name: plugins
           hostPath:
-            path: /opt/airflow/plugins
-            type: DirectoryOrCreate
+            path: /run/desktop/mnt/host/c/Users/sjogu/OneDrive - Spencer Gifts LLC/Documents/Srikanth_Jogu/Airflow_POC/plugins
+            type: Directory
+        - name: src
+          hostPath:
+            path: /run/desktop/mnt/host/c/Users/sjogu/OneDrive - Spencer Gifts LLC/Documents/Srikanth_Jogu/Airflow_POC/src
+            type: Directory
 
 ---
 # Airflow Scheduler StatefulSet
@@ -384,6 +390,8 @@ spec:
               mountPath: /opt/airflow/logs
             - name: plugins
               mountPath: /opt/airflow/plugins
+            - name: src
+              mountPath: /opt/airflow/dags/src
           resources:
             requests:
               memory: "512Mi"
@@ -394,14 +402,18 @@ spec:
       volumes:
         - name: dags
           hostPath:
-            path: /opt/airflow/dags
-            type: DirectoryOrCreate
+            path: /run/desktop/mnt/host/c/Users/sjogu/OneDrive - Spencer Gifts LLC/Documents/Srikanth_Jogu/Airflow_POC/dags
+            type: Directory
         - name: logs
           emptyDir: {}
         - name: plugins
           hostPath:
-            path: /opt/airflow/plugins
-            type: DirectoryOrCreate
+            path: /run/desktop/mnt/host/c/Users/sjogu/OneDrive - Spencer Gifts LLC/Documents/Srikanth_Jogu/Airflow_POC/plugins
+            type: Directory
+        - name: src
+          hostPath:
+            path: /run/desktop/mnt/host/c/Users/sjogu/OneDrive - Spencer Gifts LLC/Documents/Srikanth_Jogu/Airflow_POC/src
+            type: Directory
 
 ---
 # Airflow Celery Worker StatefulSet
@@ -476,6 +488,8 @@ spec:
               mountPath: /opt/airflow/logs
             - name: plugins
               mountPath: /opt/airflow/plugins
+            - name: src
+              mountPath: /opt/airflow/dags/src
           resources:
             requests:
               memory: "512Mi"
@@ -486,11 +500,15 @@ spec:
       volumes:
         - name: dags
           hostPath:
-            path: /opt/airflow/dags
-            type: DirectoryOrCreate
+            path: /run/desktop/mnt/host/c/Users/sjogu/OneDrive - Spencer Gifts LLC/Documents/Srikanth_Jogu/Airflow_POC/dags
+            type: Directory
         - name: logs
           emptyDir: {}
         - name: plugins
           hostPath:
-            path: /opt/airflow/plugins
-            type: DirectoryOrCreate
+            path: /run/desktop/mnt/host/c/Users/sjogu/OneDrive - Spencer Gifts LLC/Documents/Srikanth_Jogu/Airflow_POC/plugins
+            type: Directory
+        - name: src
+          hostPath:
+            path: /run/desktop/mnt/host/c/Users/sjogu/OneDrive - Spencer Gifts LLC/Documents/Srikanth_Jogu/Airflow_POC/src
+            type: Directory

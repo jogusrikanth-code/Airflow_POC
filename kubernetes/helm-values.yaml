@@ -4,13 +4,24 @@
 postgresql:
   enabled: false
 
-externalDatabase:
-  type: postgresql
-  host: postgres
-  port: 5432
-  database: airflow
-  user: airflow
-  password: airflowpass # TODO: switch to existingSecret for production
+# External DB connections
+executor: CeleryExecutor
+data:
+  metadataConnection:
+    protocol: postgresql
+    host: postgres
+    port: 5432
+    db: airflow
+    user: airflow
+    pass: airflow
+  resultBackendConnection:
+    protocol: postgresql
+    host: postgres
+    port: 5432
+    db: airflow
+    user: airflow
+    pass: airflow
+    sslmode: disable
 
 # Enable Redis for CeleryExecutor
 redis:
@@ -31,27 +42,20 @@ config:
   celery:
     worker_concurrency: 4
 
-# Bootstrap admin user
-users:
-  - username: admin
-    password: admin
+# Webserver settings and default admin user
+webserver:
+  enabled: true
+  replicas: 1
+  service:
+    type: LoadBalancer
+  defaultUser:
+    enabled: true
+    username: admin
+    password: "NewStrongPass#2025"
     role: Admin
     email: admin@example.com
     firstName: Admin
     lastName: User
-
-# DAGs and logs persistence disabled for POC
-dags:
-  persistence:
-    enabled: false
-logs:
-  persistence:
-    enabled: false
-
-webserver:
-  replicas: 1
-  service:
-    type: ClusterIP
   resources:
     requests:
       cpu: 500m
@@ -59,6 +63,24 @@ webserver:
     limits:
       cpu: 1000m
       memory: 1024Mi
+
+# DAGs and logs persistence disabled for POC
+dags:
+  persistence:
+    enabled: false
+  gitSync:
+    enabled: true
+    repo: "https://github.com/jogusrikanth-code/Airflow_POC.git"
+    branch: "master"
+    subPath: "."        # sync entire repo so `src/` is importable
+    depth: 1
+    wait: 60
+    # Provide a secret with GitHub credentials for private repo access (git-sync v4 keys)
+    # Create secret named `git-credentials` with keys: GITSYNC_USERNAME and GITSYNC_PASSWORD
+    credentialsSecret: git-credentials
+logs:
+  persistence:
+    enabled: false
 
 scheduler:
   replicas: 1
@@ -79,8 +101,6 @@ workers:
     limits:
       cpu: 1000m
       memory: 1024Mi
-  autoscaling:
-    enabled: false
 
 # Security: run as airflow user (non-root)
 airflowUser: 50000

@@ -132,7 +132,7 @@ def stage_to_azure_storage(**context):
         # Push staging path to XCom for next task
         context['task_instance'].xcom_push(
             key='staging_path',
-            value=f"staging/{blob_name}"
+            value=blob_name
         )
         
         return {
@@ -217,7 +217,7 @@ def transform_in_databricks(**context):
         SELECT 
             Product,
             COUNT(*) as SalesCount,
-            SUM(Quantity) as UnitsSOld,
+            SUM(Quantity) as UnitsSold,
             SUM(Amount) as TotalRevenue,
             ROUND(AVG(UnitPrice), 2) as AvgUnitPrice
         FROM sales.sales_raw_cleaned
