@@ -1,4 +1,44 @@
-# Git ignore\n
+# Git ignore
+
+# Python
 .venv
-archive/
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Environment files with secrets
 .env
+.env.local
+.env.production
+*.env
+
+# Kubernetes secrets (never commit actual secrets!)
+kubernetes/secrets-local.yaml
+kubernetes/secrets-generated.yaml
+kubernetes/*-secret.yaml
+secrets-backup.*
+
+# Airflow
+airflow.cfg
+airflow.db
+logs/
+dags/__pycache__/
+plugins/__pycache__/
+
+# Archive/backup
+archive/
+*.bak
+*.tmp
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db

@@ -5,6 +5,8 @@ postgresql:
   enabled: false
 
 # External DB connections
+# NOTE: Passwords should be moved to Kubernetes Secrets for production
+# See kubernetes/secrets.yaml and docs/SECRETS_MANAGEMENT.md
 airflowVersion: "2.9.3"
 executor: CeleryExecutor
 data:
@@ -14,14 +16,14 @@ data:
     port: 5432
     db: airflow
     user: airflow
-    pass: airflow
+    pass: airflow  # TODO: Move to secret - see kubernetes/secrets.yaml
   resultBackendConnection:
     protocol: postgresql
     host: postgres
     port: 5432
     db: airflow
     user: airflow
-    pass: airflow
+    pass: airflow  # TODO: Move to secret - see kubernetes/secrets.yaml
     sslmode: disable
 
 # Enable Redis for CeleryExecutor
@@ -44,6 +46,7 @@ config:
     worker_concurrency: 4
 
 # Webserver settings and default admin user
+# NOTE: Admin password should be moved to Kubernetes Secret for production
 webserver:
   enabled: true
   replicas: 1
@@ -52,7 +55,7 @@ webserver:
   defaultUser:
     enabled: true
     username: admin
-    password: "NewStrongPass#2025"
+    password: "NewStrongPass#2025"  # TODO: Move to secret - see kubernetes/secrets.yaml
     role: Admin
     email: admin@example.com
     firstName: Admin
