@@ -9,142 +9,8 @@ Examples:
 """
 
 from airflow import DAG
-from airflow.operators.python import PythonOperator
+from airflow.providers.databricks.operators.databricks import DatabricksSubmitRunOperator
 from datetime import datetime, timedelta
-import logging
-
-logger = logging.getLogger(__name__)
-
-
-def run_notebook_task(**context):
-    """Run a Databricks notebook as a one-time task."""
-    from src.connectors import get_databricks_connector
-    
-    db = get_databricks_connector('databricks_default')
-    
-    # Notebook configuration
-    notebook_path = "/Workspace/Users/example@company.com/ETL_Notebook"
-    cluster_id = db.cluster_id
-    
-    logger.info(f"Running notebook: {notebook_path}")
-    
-    url = f"https://{db.host}/api/2.1/jobs/runs/submit"
-    payload = {
-        'run_name': 'Airflow triggered notebook run',
-        'existing_cluster_id': cluster_id,
-        'notebook_task': {
-            'notebook_path': notebook_path,
-            'base_parameters': {
-                'env': 'production',
-                'date': '{{ ds }}'
-            }
-        }
-    }
-    
-    response = db.session.post(url, json=payload)
-    response.raise_for_status()
-    
-    run_id = response.json().get('run_id')
-    
-    logger.info(f"✓ Notebook started with run_id: {run_id}")
-    
-    return {'notebook': notebook_path, 'run_id': run_id}
-
-
-def run_data_extraction_notebook(**context):
-    """First task: Extract data from source."""
-    from src.connectors import get_databricks_connector
-    
-    db = get_databricks_connector('databricks_default')
-    
-    notebook_path = "/Workspace/Shared/01_Extract_Data"
-    
-    logger.info(f"Step 1: Running extraction notebook: {notebook_path}")
-    
-    url = f"https://{db.host}/api/2.1/jobs/runs/submit"
-    payload = {
-        'run_name': 'Extract Data',
-        'existing_cluster_id': db.cluster_id,
-        'notebook_task': {
-            'notebook_path': notebook_path,
-            'base_parameters': {
-                'source': 'sql_server',
-                'table': 'sales_data'
-            }
-        }
-    }
-    
-    response = db.session.post(url, json=payload)
-    response.raise_for_status()
-    
-    run_id = response.json().get('run_id')
-    logger.info(f"✓ Extraction started: {run_id}")
-    
-    return {'step': 'extract', 'run_id': run_id}
-
-
-def run_data_transformation_notebook(**context):
-    """Second task: Transform extracted data."""
-    from src.connectors import get_databricks_connector
-    
-    db = get_databricks_connector('databricks_default')
-    
-    notebook_path = "/Workspace/Shared/02_Transform_Data"
-    
-    logger.info(f"Step 2: Running transformation notebook: {notebook_path}")
-    
-    url = f"https://{db.host}/api/2.1/jobs/runs/submit"
-    payload = {
-        'run_name': 'Transform Data',
-        'existing_cluster_id': db.cluster_id,
-        'notebook_task': {
-            'notebook_path': notebook_path,
-            'base_parameters': {
-                'input_table': 'raw_sales',
-                'output_table': 'transformed_sales'
-            }
-        }
-    }
-    
-    response = db.session.post(url, json=payload)
-    response.raise_for_status()
-    
-    run_id = response.json().get('run_id')
-    logger.info(f"✓ Transformation started: {run_id}")
-    
-    return {'step': 'transform', 'run_id': run_id}
-
-
-def run_data_load_notebook(**context):
-    """Third task: Load transformed data to target."""
-    from src.connectors import get_databricks_connector
-    
-    db = get_databricks_connector('databricks_default')
-    
-    notebook_path = "/Workspace/Shared/03_Load_Data"
-    
-    logger.info(f"Step 3: Running load notebook: {notebook_path}")
-    
-    url = f"https://{db.host}/api/2.1/jobs/runs/submit"
-    payload = {
-        'run_name': 'Load Data',
-        'existing_cluster_id': db.cluster_id,
-        'notebook_task': {
-            'notebook_path': notebook_path,
-            'base_parameters': {
-                'source_table': 'transformed_sales',
-                'target_warehouse': 'analytics_dw'
-            }
-        }
-    }
-    
-    response = db.session.post(url, json=payload)
-    response.raise_for_status()
-    
-    run_id = response.json().get('run_id')
-    logger.info(f"✓ Load started: {run_id}")
-    
-    return {'step': 'load', 'run_id': run_id}
 
 
 # DAG definition
@@ -168,25 +34,57 @@ with DAG(
 ) as dag:
     
     # Simple single notebook task
-    simple_notebook = PythonOperator(
+    simple_notebook = DatabricksSubmitRunOperator(
         task_id='run_notebook_task',
-        python_callable=run_notebook_task,
+        databricks_conn_id='databricks_default',
+        notebook_task={
+            'notebook_path': '/Workspace/Users/example@company.com/ETL_Notebook',
+            'base_parameters': {
+                'env': 'production',
+                'date': '{{ ds }}'
+            }
+        },
+        existing_cluster_id='{{ conn.databricks_default.extra_dejson.cluster_id }}'
     )
     
     # ETL Pipeline with dependencies: Extract >> Transform >> Load
-    extract = PythonOperator(
+    extract = DatabricksSubmitRunOperator(
         task_id='extract_data',
-        python_callable=run_data_extraction_notebook,
+        databricks_conn_id='databricks_default',
+        notebook_task={
+            'notebook_path': '/Workspace/Shared/01_Extract_Data',
+            'base_parameters': {
+                'source': 'sql_server',
+                'table': 'sales_data'
+            }
+        },
+        existing_cluster_id='{{ conn.databricks_default.extra_dejson.cluster_id }}'
     )
     
-    transform = PythonOperator(
+    transform = DatabricksSubmitRunOperator(
         task_id='transform_data',
-        python_callable=run_data_transformation_notebook,
+        databricks_conn_id='databricks_default',
+        notebook_task={
+            'notebook_path': '/Workspace/Shared/02_Transform_Data',
+            'base_parameters': {
+                'input_table': 'raw_sales',
+                'output_table': 'transformed_sales'
+            }
+        },
+        existing_cluster_id='{{ conn.databricks_default.extra_dejson.cluster_id }}'
     )
     
-    load = PythonOperator(
+    load = DatabricksSubmitRunOperator(
         task_id='load_data',
-        python_callable=run_data_load_notebook,
+        databricks_conn_id='databricks_default',
+        notebook_task={
+            'notebook_path': '/Workspace/Shared/03_Load_Data',
+            'base_parameters': {
+                'source_table': 'transformed_sales',
+                'target_warehouse': 'analytics_dw'
+            }
+        },
+        existing_cluster_id='{{ conn.databricks_default.extra_dejson.cluster_id }}'
     )
     
     # Define task dependencies

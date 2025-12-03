@@ -8,27 +8,24 @@ Examples:
 """
 
 from airflow import DAG
+from airflow.providers.databricks.operators.databricks import DatabricksRunNowOperator
 from airflow.operators.python import PythonOperator
 from datetime import datetime, timedelta
 import logging
-import time
 
 logger = logging.getLogger(__name__)
 
 
 def list_workflows(**context):
     """List all workflows (jobs) in Databricks workspace."""
-    from src.connectors import get_databricks_connector
+    from airflow.providers.databricks.hooks.databricks import DatabricksHook
     
-    db = get_databricks_connector('databricks_default')
+    hook = DatabricksHook(databricks_conn_id='databricks_default')
     
     logger.info("Listing all workflows...")
     
-    url = f"https://{db.host}/api/2.1/jobs/list"
-    response = db.session.get(url)
-    response.raise_for_status()
-    
-    jobs = response.json().get('jobs', [])
+    response = hook._do_api_call(('GET', 'api/2.1/jobs/list'))
+    jobs = response.get('jobs', [])
     
     logger.info(f"✓ Found {len(jobs)} workflows")
     
@@ -38,68 +35,6 @@ def list_workflows(**context):
         logger.info(f"  - {job_name} (ID: {job_id})")
     
     return {'workflow_count': len(jobs), 'workflows': jobs}
-
-
-def execute_workflow(**context):
-    """Execute a Databricks workflow by job ID."""
-    from src.connectors import get_databricks_connector
-    
-    db = get_databricks_connector('databricks_default')
-    
-    # Example job_id - replace with actual job ID
-    job_id = 123456
-    
-    logger.info(f"Executing workflow: {job_id}")
-    
-    url = f"https://{db.host}/api/2.1/jobs/run-now"
-    payload = {'job_id': job_id}
-    
-    response = db.session.post(url, json=payload)
-    response.raise_for_status()
-    
-    run_id = response.json().get('run_id')
-    
-    logger.info(f"✓ Workflow started with run_id: {run_id}")
-    
-    return {'job_id': job_id, 'run_id': run_id, 'status': 'started'}
-
-
-def check_workflow_status(**context):
-    """Check status of a workflow run."""
-    from src.connectors import get_databricks_connector
-    
-    db = get_databricks_connector('databricks_default')
-    
-    # Get run_id from previous task
-    ti = context['task_instance']
-    result = ti.xcom_pull(task_ids='execute_workflow')
-    
-    if not result:
-        logger.info("No workflow run to check")
-        return {'status': 'skipped'}
-    
-    run_id = result.get('run_id')
-    
-    logger.info(f"Checking status for run_id: {run_id}")
-    
-    url = f"https://{db.host}/api/2.1/jobs/runs/get"
-    response = db.session.get(url, params={'run_id': run_id})
-    response.raise_for_status()
-    
-    run_details = response.json()
-    state = run_details.get('state', {})
-    life_cycle_state = state.get('life_cycle_state')
-    result_state = state.get('result_state')
-    
-    logger.info(f"✓ Run status: {life_cycle_state}")
-    if result_state:
-        logger.info(f"  Result: {result_state}")
-    
-    return {
-        'run_id': run_id,
-        'life_cycle_state': life_cycle_state,
-        'result_state': result_state
-    }
 
 
 # DAG definition
@@ -128,18 +63,13 @@ with DAG(
         python_callable=list_workflows,
     )
     
-    # Task 2: Execute workflow
-    execute = PythonOperator(
+    # Task 2: Execute workflow using built-in operator
+    # Replace job_id with actual workflow ID
+    execute = DatabricksRunNowOperator(
         task_id='execute_workflow',
-        python_callable=execute_workflow,
+        databricks_conn_id='databricks_default',
+        job_id=123456,  # Replace with actual job ID
     )
     
-    # Task 3: Check workflow status
-    check_status = PythonOperator(
-        task_id='check_workflow_status',
-        python_callable=check_workflow_status,
-    )
-    
-    # Define dependencies
-    list_all_workflows
-    execute >> check_status
+    # Tasks run independently
+    [list_all_workflows, execute]

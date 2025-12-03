@@ -17,18 +17,14 @@ logger = logging.getLogger(__name__)
 
 def list_clusters(**context):
     """List all clusters in Databricks workspace."""
-    from src.connectors import get_databricks_connector
-    import requests
+    from airflow.providers.databricks.hooks.databricks import DatabricksHook
     
-    db = get_databricks_connector('databricks_default')
+    hook = DatabricksHook(databricks_conn_id='databricks_default')
     
     logger.info("Listing all clusters in workspace...")
     
-    url = f"https://{db.host}/api/2.0/clusters/list"
-    response = db.session.get(url)
-    response.raise_for_status()
-    
-    clusters = response.json().get('clusters', [])
+    response = hook._do_api_call(('GET', 'api/2.0/clusters/list'))
+    clusters = response.get('clusters', [])
     
     logger.info(f"✓ Found {len(clusters)} clusters")
     
@@ -43,34 +39,36 @@ def list_clusters(**context):
 
 def get_cluster_details(**context):
     """Get details for a specific cluster."""
-    from src.connectors import get_databricks_connector
+    from airflow.providers.databricks.hooks.databricks import DatabricksHook
+    from airflow.hooks.base import BaseHook
     
-    db = get_databricks_connector('databricks_default')
+    hook = DatabricksHook(databricks_conn_id='databricks_default')
     
-    # Use cluster_id from connector config
-    cluster_id = db.cluster_id
+    # Get cluster_id from connection extra config
+    conn = BaseHook.get_connection('databricks_default')
+    extra = conn.extra_dejson if hasattr(conn, 'extra_dejson') else {}
+    cluster_id = extra.get('cluster_id')
     
     if not cluster_id:
-        logger.warning("No cluster_id configured")
+        logger.warning("No cluster_id configured in connection")
         return {'status': 'skipped'}
     
     logger.info(f"Getting details for cluster: {cluster_id}")
     
-    url = f"https://{db.host}/api/2.0/clusters/get"
-    response = db.session.get(url, params={'cluster_id': cluster_id})
-    response.raise_for_status()
+    response = hook._do_api_call(
+        ('GET', 'api/2.0/clusters/get'),
+        {'cluster_id': cluster_id}
+    )
     
-    details = response.json()
-    
-    logger.info(f"✓ Cluster: {details.get('cluster_name')}")
-    logger.info(f"  State: {details.get('state')}")
-    logger.info(f"  Node Type: {details.get('node_type_id')}")
-    logger.info(f"  Workers: {details.get('num_workers')}")
+    logger.info(f"✓ Cluster: {response.get('cluster_name')}")
+    logger.info(f"  State: {response.get('state')}")
+    logger.info(f"  Node Type: {response.get('node_type_id')}")
+    logger.info(f"  Workers: {response.get('num_workers')}")
     
     return {
         'cluster_id': cluster_id,
-        'cluster_name': details.get('cluster_name'),
-        'state': details.get('state')
+        'cluster_name': response.get('cluster_name'),
+        'state': response.get('state')
     }
 
 
