@@ -1,12 +1,11 @@
 """
-Azure DataFrame Operations DAG
+"""Azure DataFrame Operations DAG
 ==============================
 Demonstrates working with DataFrames and Azure Blob Storage.
 
 Examples:
-- Upload DataFrame in different formats (CSV, Parquet)
-- Download DataFrame from blob and transform
-- Convert between formats in blob storage
+- Upload DataFrame to blob storage
+- Download and transform DataFrame
 """
 
 from airflow import DAG
@@ -76,74 +75,7 @@ def download_and_transform(**context):
     return {'rows': len(df), 'columns': list(df.columns)}
 
 
-def convert_csv_to_parquet(**context):
-    """Download CSV from blob, convert to Parquet, upload back."""
-    from src.connectors import get_azure_storage_connector
-    import pandas as pd
-    
-    azure = get_azure_storage_connector('azure_default')
-    
-    # Download CSV
-    container = 'processed'
-    csv_blob = 'sales/orders_summary.csv'
-    
-    logger.info(f"Downloading CSV from {container}/{csv_blob}")
-    df = azure.download_dataframe(container, csv_blob, format='csv')
-    
-    # Upload as Parquet
-    parquet_blob = 'sales/orders_summary.parquet'
-    logger.info(f"Converting to Parquet and uploading to {container}/{parquet_blob}")
-    
-    azure.upload_dataframe(df, container, parquet_blob, format='parquet')
-    
-    logger.info(f"✓ Successfully converted CSV to Parquet ({len(df)} rows)")
-    
-    return {
-        'source': csv_blob,
-        'destination': parquet_blob,
-        'rows': len(df),
-        'format': 'parquet'
-    }
 
-
-def aggregate_and_upload(**context):
-    """Aggregate data from multiple blobs and upload summary."""
-    from src.connectors import get_azure_storage_connector
-    import pandas as pd
-    
-    azure = get_azure_storage_connector('azure_default')
-    
-    container = 'raw'
-    prefix = 'sales/'
-    
-    logger.info(f"Looking for CSV files in {container}/{prefix}")
-    
-    # List all CSV files
-    blobs = [b for b in azure.list_blobs(container, prefix) if b.endswith('.csv')]
-    logger.info(f"Found {len(blobs)} CSV files")
-    
-    # Download and combine
-    all_data = []
-    for blob in blobs[:3]:  # Limit to first 3 files for demo
-        logger.info(f"Reading {blob}...")
-        df = azure.download_dataframe(container, blob, format='csv')
-        all_data.append(df)
-    
-    # Combine and aggregate
-    combined = pd.concat(all_data, ignore_index=True)
-    logger.info(f"Combined {len(combined)} total rows from {len(all_data)} files")
-    
-    # Upload aggregated data
-    output_blob = 'sales/aggregated_summary.csv'
-    azure.upload_dataframe(combined, 'processed', output_blob, format='csv')
-    
-    logger.info(f"✓ Uploaded aggregated data to processed/{output_blob}")
-    
-    return {
-        'source_files': len(all_data),
-        'total_rows': len(combined),
-        'output': output_blob
-    }
 
 
 # DAG definition
@@ -178,18 +110,5 @@ with DAG(
         python_callable=download_and_transform,
     )
     
-    # Task 3: Convert CSV to Parquet
-    convert_format = PythonOperator(
-        task_id='convert_csv_to_parquet',
-        python_callable=convert_csv_to_parquet,
-    )
-    
-    # Task 4: Aggregate from multiple files
-    aggregate = PythonOperator(
-        task_id='aggregate_and_upload',
-        python_callable=aggregate_and_upload,
-    )
-    
-    # Define dependencies
-    upload_df >> convert_format
-    download_transform >> aggregate
+    # Tasks run independently
+    [upload_df, download_transform]

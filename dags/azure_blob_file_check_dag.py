@@ -1,17 +1,15 @@
 """
-Azure Blob File Check DAG
+"""Azure Blob File Check DAG
 =========================
-Demonstrates checking for file existence and conditional processing.
+Demonstrates checking for file existence.
 
 Examples:
-- Check if file exists before processing
-- Wait for multiple files to arrive
-- Validate file presence in blob storage
+- Check if single file exists
+- Check if multiple files exist
 """
 
 from airflow import DAG
-from airflow.operators.python import PythonOperator, BranchPythonOperator
-from airflow.operators.empty import EmptyOperator
+from airflow.operators.python import PythonOperator
 from datetime import datetime, timedelta
 import logging
 
@@ -45,40 +43,7 @@ def check_blob_exists(**context):
     return exists
 
 
-def branch_on_file_exists(**context):
-    """Branch based on whether file exists."""
-    ti = context['task_instance']
-    file_exists = ti.xcom_pull(task_ids='check_blob_exists', key='file_exists')
-    
-    if file_exists:
-        logger.info("File exists - proceeding to process")
-        return 'process_file'
-    else:
-        logger.info("File not found - skipping processing")
-        return 'file_not_found'
 
-
-def process_file(**context):
-    """Process the file if it exists."""
-    from src.connectors import get_azure_storage_connector
-    
-    ti = context['task_instance']
-    blob_name = ti.xcom_pull(task_ids='check_blob_exists', key='blob_name')
-    
-    azure = get_azure_storage_connector('azure_default')
-    
-    logger.info(f"Processing {blob_name}...")
-    
-    # Download and process
-    temp_file = '/tmp/process_file.csv'
-    azure.download_file('staging', blob_name, temp_file)
-    
-    # Process file (example: read with pandas)
-    import pandas as pd
-    df = pd.read_csv(temp_file)
-    logger.info(f"✓ Processed {len(df)} rows from {blob_name}")
-    
-    return {'rows': len(df), 'status': 'processed'}
 
 
 def wait_for_multiple_files(**context):
@@ -126,29 +91,7 @@ def wait_for_multiple_files(**context):
     }
 
 
-def check_blob_by_pattern(**context):
-    """Check for files matching a pattern (e.g., today's date)."""
-    from src.connectors import get_azure_storage_connector
-    from datetime import datetime
-    
-    azure = get_azure_storage_connector('azure_default')
-    
-    container = 'staging'
-    today = datetime.now().strftime('%Y-%m-%d')
-    pattern = f'sales/{today}_'
-    
-    logger.info(f"Looking for files matching pattern: {pattern}")
-    
-    # List blobs with prefix
-    matching_blobs = azure.list_blobs(container, prefix=pattern)
-    
-    logger.info(f"✓ Found {len(matching_blobs)} files matching pattern")
-    
-    return {
-        'pattern': pattern,
-        'count': len(matching_blobs),
-        'files': matching_blobs
-    }
+
 
 
 # DAG definition
@@ -177,35 +120,11 @@ with DAG(
         python_callable=check_blob_exists,
     )
     
-    # Task 2: Branch based on file existence
-    branch_task = BranchPythonOperator(
-        task_id='branch_on_file_exists',
-        python_callable=branch_on_file_exists,
-    )
-    
-    # Task 3a: Process file if exists
-    process = PythonOperator(
-        task_id='process_file',
-        python_callable=process_file,
-    )
-    
-    # Task 3b: File not found handler
-    file_not_found = EmptyOperator(
-        task_id='file_not_found',
-    )
-    
-    # Task 4: Wait for multiple files (independent check)
+    # Task 2: Wait for multiple files
     wait_multiple = PythonOperator(
         task_id='wait_for_multiple_files',
         python_callable=wait_for_multiple_files,
     )
     
-    # Task 5: Check by pattern (independent check)
-    check_pattern = PythonOperator(
-        task_id='check_blob_by_pattern',
-        python_callable=check_blob_by_pattern,
-    )
-    
-    # Define task dependencies
-    check_file >> branch_task >> [process, file_not_found]
-    wait_multiple >> check_pattern  # Sequential dependency
+    # Tasks run independently
+    [check_file, wait_multiple]

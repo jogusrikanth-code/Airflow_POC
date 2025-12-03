@@ -1,12 +1,11 @@
 """
-Azure Blob Copy Operations DAG
+"""Azure Blob Copy Operations DAG
 ==============================
-Demonstrates copying files between containers and storage accounts.
+Demonstrates copying files between containers.
 
 Examples:
 - Copy single file between containers
 - Copy multiple files (pattern-based)
-- Copy between different storage accounts
 """
 
 from airflow import DAG
@@ -76,38 +75,7 @@ def copy_multiple_blobs_by_prefix(**context):
     return {'copied_count': len(copied), 'blobs': copied}
 
 
-def copy_between_storage_accounts(**context):
-    """Copy blobs between different Azure Storage accounts."""
-    from src.connectors import AzureStorageConnector
-    
-    # Source storage account
-    source_azure = AzureStorageConnector(
-        account_name='sourcestorageaccount',
-        account_key='source_key_here'  # Better: use Airflow Variables
-    )
-    
-    # Target storage account
-    target_azure = AzureStorageConnector(
-        account_name='targetstorageaccount',
-        account_key='target_key_here'  # Better: use Airflow Variables
-    )
-    
-    # Configuration
-    source_container = 'exports'
-    target_container = 'imports'
-    blob_name = 'daily_sales.csv'
-    
-    logger.info(f"Cross-account copy: {blob_name}")
-    
-    # Download from source account
-    temp_file = '/tmp/cross_account_copy.csv'
-    source_azure.download_file(source_container, blob_name, temp_file)
-    
-    # Upload to target account
-    target_azure.upload_file(temp_file, target_container, blob_name)
-    
-    logger.info("✓ Cross-account copy completed")
-    return {'blob': blob_name, 'status': 'success'}
+
 
 
 # DAG definition
@@ -142,11 +110,5 @@ with DAG(
         python_callable=copy_multiple_blobs_by_prefix,
     )
     
-    # Task 3: Copy between storage accounts
-    copy_cross_account = PythonOperator(
-        task_id='copy_between_storage_accounts',
-        python_callable=copy_between_storage_accounts,
-    )
-    
     # Tasks run independently (no dependencies)
-    [copy_single, copy_batch, copy_cross_account]
+    [copy_single, copy_batch]
