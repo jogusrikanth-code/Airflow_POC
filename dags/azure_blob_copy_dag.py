@@ -1,4 +1,3 @@
-"""
 """Azure Blob Copy Operations DAG
 ==============================
 Demonstrates copying files between containers.

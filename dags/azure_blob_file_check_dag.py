@@ -1,4 +1,3 @@
-"""
 """Azure Blob File Check DAG
 =========================
 Demonstrates checking for file existence.

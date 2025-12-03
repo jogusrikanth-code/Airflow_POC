@@ -1,4 +1,3 @@
-"""
 """Azure DataFrame Operations DAG
 ==============================
 Demonstrates working with DataFrames and Azure Blob Storage.
