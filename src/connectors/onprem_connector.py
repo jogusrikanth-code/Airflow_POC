@@ -1,13 +1,12 @@
 """
-On-Premises Data Source Connector
-=================================
-Handles connections to on-premises databases and file systems.
+On-Premises Connector (POC)
+==========================
+Minimal connector for connecting to common relational databases hosted on-prem.
 
-Supports:
+Supports (POC scope):
 - SQL Server
 - PostgreSQL
 - MySQL
-- File systems (SMB, local paths)
 """
 
 from typing import Dict, List, Any

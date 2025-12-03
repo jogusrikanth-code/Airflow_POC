@@ -1,15 +1,11 @@
 """
-Power BI Connector
-=================
-Handles Power BI REST API interactions for dataset refresh and metadata updates.
-
-Supports:
-- Dataset refresh triggers
-- Dataset metadata access
-- Report information retrieval
+Power BI Connector (POC)
+=======================
+Minimal connector focused on dataset refresh and listing datasets. Kept simple
+for clarity in the POC context.
 """
 
-from typing import Dict, List, Optional
+from typing import Dict, List
 import logging
 import time
 
@@ -51,25 +47,6 @@ class PowerBIConnector:
             logger.info("✓ Power BI session initialized")
         except Exception as e:
             logger.error(f"✗ Failed to setup Power BI session: {str(e)}")
-            raise
-    
-    def list_workspaces(self) -> List[Dict]:
-        """
-        List all Power BI workspaces.
-        
-        Returns:
-            List of workspace dictionaries with id and name
-        """
-        logger.info("Fetching Power BI workspaces...")
-        try:
-            response = self.session.get(f"{self.BASE_URL}/groups")
-            response.raise_for_status()
-            
-            workspaces = response.json().get('value', [])
-            logger.info(f"✓ Found {len(workspaces)} workspaces")
-            return workspaces
-        except Exception as e:
-            logger.error(f"✗ Failed to fetch workspaces: {str(e)}")
             raise
     
     def list_datasets(self, workspace_id: str) -> List[Dict]:
@@ -165,55 +142,8 @@ class PowerBIConnector:
         logger.warning(f"⚠ Refresh did not complete within {timeout}s")
         return False
     
-    def get_dataset_tables(self, workspace_id: str, dataset_id: str) -> List[Dict]:
-        """
-        Get tables in a dataset.
-        
-        Args:
-            workspace_id: Power BI workspace ID
-            dataset_id: Dataset ID
-            
-        Returns:
-            List of table dictionaries with metadata
-        """
-        logger.info(f"Fetching tables for dataset {dataset_id}...")
-        try:
-            response = self.session.get(
-                f"{self.BASE_URL}/groups/{workspace_id}/datasets/{dataset_id}/tables"
-            )
-            response.raise_for_status()
-            
-            tables = response.json().get('value', [])
-            logger.info(f"✓ Found {len(tables)} tables")
-            return tables
-        except Exception as e:
-            logger.error(f"✗ Failed to fetch tables: {str(e)}")
-            raise
-    
-    def get_report_info(self, workspace_id: str, report_id: str) -> Dict:
-        """
-        Get report information.
-        
-        Args:
-            workspace_id: Power BI workspace ID
-            report_id: Report ID
-            
-        Returns:
-            Report dictionary with metadata
-        """
-        logger.info(f"Fetching report {report_id}...")
-        try:
-            response = self.session.get(
-                f"{self.BASE_URL}/groups/{workspace_id}/reports/{report_id}"
-            )
-            response.raise_for_status()
-            
-            report = response.json()
-            logger.info(f"✓ Report info: {report.get('name')}")
-            return report
-        except Exception as e:
-            logger.error(f"✗ Failed to fetch report: {str(e)}")
-            raise
+    # Note: Additional endpoints (workspaces, reports, tables) deliberately
+    # omitted here to keep the POC API surface very small and focused.
 
 
 def get_powerbi_token(client_id: str, client_secret: str, 
