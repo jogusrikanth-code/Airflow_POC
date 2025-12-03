@@ -193,20 +193,8 @@ This guide documents the complete process of deploying Apache Airflow 3.0.2 on A
      --namespace airflow
    ```
 
-3. **Create Azure Storage Secret (Optional - for log persistence)**
-   ```bash
-   # Replace with your actual storage account credentials (DO NOT COMMIT KEYS)
-   # Tip: paste values only into your terminal, never into files.
-   STORAGE_ACCOUNT_NAME="<your-storage-account-name>"
-   STORAGE_ACCOUNT_KEY="<paste-storage-account-key-here>"
-   
-   kubectl create secret generic airflow-storage \
-     --from-literal=storage-account-name="$STORAGE_ACCOUNT_NAME" \
-     --from-literal=storage-account-key="$STORAGE_ACCOUNT_KEY" \
-     --namespace airflow
-   ```
-
-   Note: Avoid committing secrets into Git. If a push gets blocked by GitHub Push Protection, remove the secret from the file/commit and create the secret via shell commands only.
+**Note on Azure Storage for Logs (Optional):**
+Remote log storage in Azure Blob is optional and not required for this POC. If needed later, create secrets via kubectl in your terminal only—never commit credentials to Git. See Azure Key Vault integration for production secret management.
 
 ---
 
