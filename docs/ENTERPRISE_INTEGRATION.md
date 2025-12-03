@@ -1,4 +1,8 @@
-# Enterprise Integration Setup Guide
+# 🔗 Enterprise Integration Patterns
+
+Connecting Airflow to your enterprise ecosystem? This guide covers integration with Databricks, Power BI, Azure services, and more! ☁️
+
+> **🎯 Perfect for:** Integration engineers, data architects, platform teams Setup Guide
 
 ## Overview
 

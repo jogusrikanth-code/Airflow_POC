@@ -1,8 +1,10 @@
-# Helm Migration Guide
+# 📦 Helm Migration Guide
 
-This guide helps you migrate from raw Kubernetes manifests to the official Apache Airflow Helm chart, using values aligned with your current setup.
+Ready to level up? This guide helps you migrate from raw Kubernetes manifests to the official Apache Airflow Helm chart. 🚀
 
-## Why Migrate
+> **🎯 Why Helm?** Easier upgrades, built-in best practices, and unified configuration management!
+
+## 💡 Why Migrate
 - Easier upgrades and configuration management
 - Built-in best practices and templating
 - Unified deployment via Helm

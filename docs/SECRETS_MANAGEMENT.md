@@ -1,8 +1,10 @@
-# Secrets Management Guide
+# 🔐 Secrets Management Guide
 
-This guide explains how to securely manage passwords, API keys, and connection credentials for your Airflow deployment.
+Security matters! This guide shows you how to properly manage passwords, API keys, and connection credentials for your Airflow deployment. 🔒
 
-## 📋 Table of Contents
+> **⚠️ Golden Rule:** Never commit secrets to Git. Never share them in Slack. Always use proper secret management!
+
+## 📝 Table of Contents
 - [Quick Start](#quick-start)
 - [Development Setup](#development-setup)
 - [Production Setup](#production-setup)

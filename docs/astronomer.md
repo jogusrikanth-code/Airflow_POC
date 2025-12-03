@@ -1,9 +1,11 @@
-# Astronomer Deep Dive (2025)
+# ☁️ Astronomer Deep Dive (2025)
 
-Comprehensive overview of Astronomer for a 15-engineer data team with hybrid (on‑prem + cloud) integration needs.
+Considering a managed Airflow platform? This comprehensive overview covers Astronomer for enterprise data teams with hybrid integration needs. 🚀
+
+> **🎯 Perfect for:** Teams evaluating managed vs self-hosted Airflow
 
 ---
-## 1. What Is Astronomer?
+## 1️⃣ What Is Astronomer?
 Astronomer is a managed Apache Airflow platform delivering enterprise-grade orchestration, security, observability, and lifecycle tooling. Built and maintained by core Airflow contributors.
 
 Deployment models:

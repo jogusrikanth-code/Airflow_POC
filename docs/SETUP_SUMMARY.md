@@ -1,8 +1,12 @@
-# Setup Summary
+# ⚙️ Setup Summary — Quick Reference Guide
 
-This project runs Apache Airflow on Kubernetes (Docker Desktop) and demonstrates an end‑to‑end enterprise pipeline. This guide covers how to access the UI, set credentials, and ensure DAGs are visible via either local mounts or Helm + git-sync.
+Hey! This is your quick reference for accessing and configuring your Airflow deployment. Everything you need to know about UI access, credentials, and DAG visibility in one place. 🚀
 
-## Airflow UI Access
+> **💡 Bookmark this!** You'll refer to it often during development.
+
+This project runs Apache Airflow on Kubernetes (Docker Desktop) and demonstrates an end‑to‑end enterprise pipeline.
+
+## 🌐 Airflow UI Access
 - Service: `airflow-webserver` (type `LoadBalancer`)
 - URL: `http://localhost:8080` (Docker Desktop exposes LoadBalancer at localhost)
 - Verify service:

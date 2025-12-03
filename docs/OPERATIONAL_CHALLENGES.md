@@ -1,8 +1,10 @@
-# Operational Challenges: On‑Prem Kubernetes Airflow with Azure Blob Logs
+# 🐛 Operational Challenges & Real-World Solutions
 
-This document summarizes the key operational challenges and practical mitigations for running Apache Airflow on an on‑premises Kubernetes cluster while using Azure Blob Storage only for log persistence.
+Running Airflow in production? Here are the challenges you'll face and practical ways to handle them. Learn from real-world experience! 🎯
 
-## Scope
+> **💡 Pro Tip:** Read this BEFORE going to production. An ounce of prevention is worth a pound of cure!
+
+## 🎯 Scope
 - Compute: On‑prem Kubernetes (scheduler, webserver, workers, triggerer, Redis, Postgres)
 - Storage: Azure Blob Storage for task/webserver logs (remote logging)
 - Networking: On‑prem → Azure over VPN/ExpressRoute
