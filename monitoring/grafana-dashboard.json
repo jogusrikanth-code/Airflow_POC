@@ -1,13 +1,14 @@
-# Grafana Dashboard for Airflow POC
-# Import this JSON into Grafana for instant monitoring
-
 {
-  "dashboard": {
-    "title": "Airflow Enterprise Monitoring",
-    "uid": "airflow-enterprise",
-    "timezone": "browser",
-    "refresh": "30s",
-    "panels": [
+  "annotations": {
+    "list": []
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [],
+  "liveNow": false,
+  "panels": [
       {
         "id": 1,
         "title": "Overall Health",
