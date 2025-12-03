@@ -1,273 +1,99 @@
-# Airflow POC — Kubernetes-first Setup
+# Airflow POC
 
-## Overview
-This repository contains a Kubernetes-first Apache Airflow POC running on Docker Desktop’s local Kubernetes. It includes enterprise connectors, example DAGs, and production-lean K8s manifests to run Airflow (webserver, scheduler, worker) with PostgreSQL and Redis.
+Welcome to the Airflow Proof of Concept repository! This project demonstrates running Apache Airflow on Kubernetes with enterprise integration patterns. 🚀
 
-- Run locally on Docker Desktop + Kubernetes
-- Deploy with simple `kubectl apply` commands
-- Access Airflow UI via port-forward or LoadBalancer
+## 🚀 Quick Start
 
-## Quick Start
+Deploy Airflow to Kubernetes (Docker Desktop):
 
-1) Deploy PostgreSQL
-```
-kubectl apply -f kubernetes/postgres.yaml
-kubectl wait --for=condition=ready pod -l app=postgres -n airflow --timeout=300s
-```
-
-2) Deploy Airflow (CeleryExecutor + Redis)
-```
+```powershell
+# Deploy all Airflow components
 kubectl apply -f kubernetes/airflow.yaml
+
+# Check deployment status
 kubectl get pods -n airflow
+
+# Access the Airflow UI at http://localhost:8080
+kubectl port-forward svc/airflow-webserver 8080:8080 -n airflow
 ```
 
-3) Access Airflow UI
-```
-kubectl port-forward svc/airflow-webserver 8080:8080 -n airflow
-# If 8080 is busy:
-kubectl port-forward svc/airflow-webserver 9090:8080 -n airflow
-```
-Open http://localhost:8080 (or http://localhost:9090) (username: `admin`, password: `admin`).
+Create admin credentials and start building workflows! See [QUICKSTART.md](docs/QUICKSTART.md) for detailed setup.
+
+## 📚 Documentation
+
+All comprehensive guides are in the `docs/` folder. **Start here:** [docs/README.md](docs/README.md)
+
+**Quick Navigation:**
+- 🎓 **New to Airflow?** → [AIRFLOW_BASICS.md](docs/AIRFLOW_BASICS.md)
+- ⚡ **Deploy Now** → [QUICKSTART.md](docs/QUICKSTART.md)
+- 🔧 **Setup Reference** → [SETUP_SUMMARY.md](docs/SETUP_SUMMARY.md)
+- 🏗️ **Architecture** → [ARCHITECTURE.md](docs/ARCHITECTURE.md)
+- 🏢 **Enterprise Deployment** → [ENTERPRISE_ARCHITECTURE.md](docs/ENTERPRISE_ARCHITECTURE.md)
+- 🔗 **Integrations (Databricks, Power BI)** → [ENTERPRISE_INTEGRATION.md](docs/ENTERPRISE_INTEGRATION.md)
+
+## 💡 What's Included
+
+This POC demonstrates:
+- ✅ Kubernetes deployment with PostgreSQL + Redis
+- ✅ Multiple deployment options (Helm + git-sync or hostPath)
+- ✅ Enterprise connectors (Databricks, Power BI, Azure, On-Premises)
+- ✅ ETL pipeline examples with real data processing
+- ✅ Comprehensive documentation for learning and production deployment
+
+## 📊 Example DAGs
+
+- **`demo_dag.py`** - Simple 2-task workflow for learning DAG basics
+- **`etl_example_dag.py`** - Full ETL pipeline (extract, transform, load) with sample CSV data
+- **`enterprise_integration_dag.py`** - Production-style integration: On-Premises → Azure → Databricks → Power BI
+
+## 🗂️ Database Queries
+
+Use **`airflow_queries.sql`** for debugging Airflow's PostgreSQL database:
+- DAG status and run history
+- Failed task analysis
+- Performance metrics
+- XCom data inspection
+
+See [POSTGRES_VSCODE_CONNECTION.md](docs/POSTGRES_VSCODE_CONNECTION.md) for connection setup.
 
 ## 📁 Folder Structure
 
 ```
 Airflow_POC/
-├── README.md                     # Project overview (you are here)
-├── airflow_queries.sql           # Useful SQL queries for debugging
-│
-├── docs/                         # 📚 Complete documentation
-│   ├── 00_START_HERE.md          # ⭐ Start here - personalized learning path
-│   ├── README.md                 # Documentation hub
-│   ├── INDEX.md                  # Quick navigation & role-based paths
-│   ├── QUICKSTART.md             # Deploy Airflow in 30 minutes
-│   ├── AIRFLOW_BASICS.md         # Complete Airflow learning guide
-│   ├── ARCHITECTURE.md           # System design & components
-│   ├── FOLDER_STRUCTURE.md       # This repo's organization
-│   ├── LEARNING_CHECKLIST.md     # Track your progress
-│   ├── SETUP_SUMMARY.md          # Configuration quick reference
-│   ├── SECRETS_MANAGEMENT.md     # Security best practices
-│   ├── POSTGRES_VSCODE_CONNECTION.md  # Database connection setup
-│   ├── HELM_MIGRATION.md         # Migrate to Helm charts
-│   ├── OPERATIONAL_CHALLENGES.md # Production troubleshooting
-│   ├── ENTERPRISE_*.md           # Enterprise patterns & integrations
-│   ├── astronomer.md             # Managed Airflow platform option
-│   └── ORCHESTRATION_IMPROVEMENTS.md  # Performance optimization
-│
-├── kubernetes/                   # Kubernetes deployment manifests
-│   ├── README.md                 # Deployment guide
-│   ├── postgres.yaml             # PostgreSQL database
-│   ├── airflow.yaml              # Airflow components (webserver, scheduler, worker, Redis)
-│   ├── helm-values.yaml          # Helm chart configuration
-│   └── secrets.yaml              # Secret template (never commit actual secrets!)
-│
-├── dags/                         # 🎯 DAG definitions (Airflow workflows)
-│   ├── demo_dag.py               # Simple starter DAG
-│   ├── etl_example_dag.py        # Full ETL pipeline example
-│   └── enterprise_integration_dag.py  # Enterprise connectors demo
-│
-├── src/                          # Application source code
-│   ├── connectors/               # Database & API connectors
-│   │   ├── azure_connector.py
-│   │   ├── databricks_connector.py
-│   │   ├── onprem_connector.py
-│   │   └── powerbi_connector.py
-│   ├── extract/                  # Data extraction logic
+├── README.md                     # Project overview (this file)
+├── airflow_queries.sql           # SQL queries for debugging
+├── docs/                         # 📚 Complete documentation (19 guides)
+├── dags/                         # Airflow DAG definitions
+├── src/                          # Python source code
+│   ├── connectors/               # Enterprise connectors (Azure, Databricks, Power BI)
+│   ├── extract/                  # Data extraction modules
 │   ├── transform/                # Data transformation logic
-│   └── load/                     # Data loading logic
-│
-├── data/                         # Sample data for local testing
-│   ├── raw/                      # Input data
-│   └── processed/                # Output data
-│
+│   └── load/                     # Data loading utilities
 ├── plugins/                      # Custom Airflow plugins
-│   ├── hooks/                    # Custom connection types
-│   └── operators/                # Custom task types
-│
-└── scripts/                      # Utility scripts
-    └── setup-secrets.ps1         # PowerShell secret setup helper
+├── kubernetes/                   # K8s deployment manifests
+├── data/                         # Sample data files
+│   ├── raw/                      # Source data
+│   └── processed/                # Transformed data
+├── scripts/                      # Setup and utility scripts
+└── archive/                      # Historical files for reference
 ```
 
-## Runbook
+## ⚙️ Common Commands
 
-- Check pods: `kubectl get pods -n airflow`
-- Check services: `kubectl get svc -n airflow`
-- Logs:
-  - Webserver: `kubectl logs -f deployment/airflow-webserver -n airflow`
-  - Scheduler: `kubectl logs -f statefulset/airflow-scheduler -n airflow`
-  - Worker: `kubectl logs -f statefulset/airflow-worker -n airflow`
-
-## Notes
-
-- Images use `IfNotPresent` to minimize Docker Hub pulls.
-- For rate limit issues, `docker login` before deploying.
-- To reset cluster on Docker Desktop: Settings → Kubernetes → Reset Cluster.
-
-## Next Steps
-
-- Configure Airflow Connections for your sources (UI → Admin → Connections).
-- Enable and run `enterprise_integration_dag` from the UI.
-- Consider migrating to Helm using `kubernetes/values.yaml` as baseline.
- - Start with the architecture overview: see `docs/ARCHITECTURE.md` (beginner-friendly diagram and step-by-step).
- - For Helm migration guidance: see `docs/HELM_MIGRATION.md` (uses `kubernetes/helm-values.yaml`).
-
-## 📚 Documentation Quick Links
-- Overview & Setup: `docs/README.md`
-- Quickstart (Kubernetes): `docs/QUICKSTART.md`
-- Airflow Basics: `docs/AIRFLOW_BASICS.md`
-- Folder Structure: `docs/FOLDER_STRUCTURE.md`
-- Learning Checklist: `docs/LEARNING_CHECKLIST.md`
-
----
-
-## 📚 Project DAGs
-
-### 1. **demo_dag.py** - Simple Introduction
-- **Purpose**: Learn the bare minimum to run a DAG
-- **Tasks**: 
-  - `start` (EmptyOperator)
-  - `end` (EmptyOperator)
-- **Schedule**: Daily
-- **Use Case**: Great for understanding DAG structure
-
-### 2. **etl_example_dag.py** - Full ETL Pipeline
-- **Purpose**: Learn how to chain tasks and work with data
-- **Tasks**:
-  1. `extract_from_source_a` - Reads sample CSV
-  2. `transform_sales_data` - Aggregates by date
-  3. `load_to_dw` - Verifies processed file
-- **Schedule**: Daily
-- **Data Flow**: `raw/sample_source_a.csv` → `processed/sales_daily_summary.csv`
-
----
-
-## 🔑 Key Airflow Concepts
-
-### DAG (Directed Acyclic Graph)
-- Workflow definition with dependencies
-- `start_date`: When DAG starts running
-- `schedule_interval`: How often to run (e.g., `@daily`, `0 8 * * *`)
-- `catchup`: Whether to run past schedules
-
-### Tasks
-- Individual units of work
-- Connected by dependencies: `task1 >> task2` means task2 depends on task1
-- Common operators:
-  - `PythonOperator`: Run Python functions
-  - `BashOperator`: Run shell commands
-  - `EmptyOperator`: No-op for testing
-
-### Execution
-- **DAG Run**: One execution of an entire DAG
-- **Task Instance**: One execution of a task
-- **XCom**: Communication between tasks via key-value pairs
-
----
-
-## 📝 Sample Data
-
-### `data/raw/sample_source_a.csv`
-```csv
-date,amount
-2024-01-01,100
-2024-01-01,200
-2024-01-02,150
-```
-
-### `data/processed/sales_daily_summary.csv` (Generated)
-```csv
-date,amount
-2024-01-01,300
-2024-01-02,150
-```
-
----
-
-## 🛠️ Common Kubernetes Commands
-```
+```powershell
+# View all pods
 kubectl get pods -n airflow
-kubectl get svc -n airflow
-kubectl logs -f deployment/airflow-webserver -n airflow
-kubectl logs -f statefulset/airflow-scheduler -n airflow
-kubectl logs -f statefulset/airflow-worker -n airflow
+
+# Check logs
+kubectl logs -n airflow deploy/airflow-scheduler -f
+kubectl logs -n airflow deploy/airflow-webserver -f
+
+# Port-forward to database (for querying)
+kubectl port-forward -n airflow pod/postgres-0 5432:5432
 ```
 
----
-
-## 📖 Learning Path
-
-1. **Phase 1: Understand DAG Basics**
-   - Read AIRFLOW_BASICS.md
-   - Review `demo_dag.py`
-   - Run it in the UI and observe
-
-2. **Phase 2: Task Dependencies**
-   - Modify `demo_dag.py` to add more tasks
-   - Experiment with different operators
-   - Understand task execution order
-
-3. **Phase 3: Data Processing**
-   - Review `etl_example_dag.py`
-   - Run the full ETL pipeline
-   - Check logs and output files
-
-4. **Phase 4: Advanced Topics**
-   - Learn about XCom for task communication
-   - Create custom operators in `plugins/`
-   - Add error handling and retries
+**Troubleshooting?** Check [QUICKSTART.md](docs/QUICKSTART.md) for detailed debugging steps.
 
 ---
 
-## 🔧 Configuration
-
-### `airflow_home/airflow.cfg` (Key Settings)
-- `dags_folder`: Where Airflow scans for DAGs
-- `executor`: Task execution method (SequentialExecutor for POC)
-- `sql_alchemy_conn`: Database connection
-
-### Environment Variables
-```bash
-# Override config with environment variables
-export AIRFLOW__CORE__EXECUTOR=LocalExecutor
-export AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql://user:password@localhost/airflow
-```
-
----
-
-## 🐛 Troubleshooting
-
-### DAG not showing up?
-- Ensure DAG file is in `dags/` folder
-- Check DAG file has no syntax errors
-- Verify DAG file contains a DAG object
-
-### Tasks not running?
-- Check if DAG is paused (unpause in UI)
-- Review logs in `airflow_home/logs/`
-- Ensure `schedule_interval` is set correctly
-
-### Import errors?
-- Add project root to PYTHONPATH: `export PYTHONPATH=$PYTHONPATH:$(pwd)`
-- Ensure `__init__.py` exists in each package
-
----
-
-## 📖 Additional Resources
-
-- **Official Docs**: https://airflow.apache.org/docs/
-- **Concepts**: https://airflow.apache.org/docs/apache-airflow/stable/core-concepts/
-- **API Reference**: https://airflow.apache.org/docs/apache-airflow/stable/_api/
-
----
-
-## ✅ Next Steps
-
-1. ✅ Understand folder structure
-2. ⏳ Run `demo_dag.py` successfully
-3. ⏳ Run `etl_example_dag.py` and check output
-4. ⏳ Modify DAGs and experiment
-5. ⏳ Create your own custom DAG
-
----
-
-**Happy Learning! 🎓**
+**Ready to get started?** Head to [docs/README.md](docs/README.md) for your personalized learning path! 🎓
