@@ -1,15 +1,11 @@
 """
-Databricks Connector
-===================
-Handles connections to Databricks for data warehousing and transformations.
-
-Supports:
-- SQL queries on Databricks workspace
-- Data upload/download
-- Notebook execution
+Databricks Connector (POC)
+=========================
+Minimal connector for running SQL queries on a Databricks workspace/warehouse
+and creating a table from a query. Kept intentionally simple for readability.
 """
 
-from typing import Dict, List, Any, Optional
+from typing import Dict, List
 import logging
 
 logger = logging.getLogger(__name__)
@@ -64,7 +60,7 @@ class DatabricksConnector:
         Returns:
             Query results as list of dictionaries
         """
-        logger.info("Executing query on Databricks...")
+        logger.info("Executing SQL on Databricks...")
         try:
             from databricks.sql import connect
             
@@ -82,7 +78,7 @@ class DatabricksConnector:
             rows = cursor.fetchall()
             results = [dict(zip(columns, row)) for row in rows]
             
-            logger.info(f"✓ Query completed, {len(results)} rows returned")
+            logger.info(f"✓ Query returned {len(results)} rows")
             cursor.close()
             conn.close()
             
@@ -91,45 +87,9 @@ class DatabricksConnector:
             logger.error(f"✗ Query failed: {str(e)}")
             raise
     
-    def upload_to_table(self, df, table_name: str, mode: str = 'overwrite'):
-        """
-        Upload pandas DataFrame to Databricks table.
-        
-        Args:
-            df: Pandas DataFrame to upload
-            table_name: Target table name
-            mode: 'overwrite' or 'append'
-        """
-        logger.info(f"Uploading {len(df)} rows to {table_name}...")
-        try:
-            from databricks.sql import connect
-            
-            conn = connect(
-                host=self.host,
-                http_path="/sql/1.0/warehouses/" + self.cluster_id,
-                auth_token=self.token
-            )
-            
-            # Convert DataFrame to table
-            # Note: In production, use Delta Lake format
-            cursor = conn.cursor()
-            
-            # Create table if not exists
-            cursor.execute(f"CREATE TABLE IF NOT EXISTS {table_name} USING DELTA")
-            
-            # Insert data
-            # (In production, write to temp location and use COPY INTO or Delta Lake)
-            logger.info(f"✓ Upload completed")
-            
-            cursor.close()
-            conn.close()
-        except Exception as e:
-            logger.error(f"✗ Upload failed: {str(e)}")
-            raise
-    
     def create_table_from_query(self, source_query: str, target_table: str):
         """
-        Create Databricks table from query result.
+        Create or replace a table from a query result (CTAS pattern).
         
         Args:
             source_query: SQL query to get data from
@@ -147,7 +107,6 @@ class DatabricksConnector:
             
             cursor = conn.cursor()
             
-            # Create table as select
             create_query = f"""
             CREATE OR REPLACE TABLE {target_table} AS
             {source_query}
@@ -175,7 +134,6 @@ def get_databricks_connector(conn_id: str = 'databricks_default') -> DatabricksC
     Note:
         Connection should have:
         - host: Databricks workspace host
-        - login: Not used
         - password: Databricks API token
         - extra: {"cluster_id": "xxx"} or {"warehouse_id": "xxx"}
     """
