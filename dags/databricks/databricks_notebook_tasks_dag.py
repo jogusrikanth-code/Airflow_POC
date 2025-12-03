@@ -16,6 +16,34 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+def run_notebook(**context):
+    """Run a Databricks notebook."""
+    from src.connectors import get_databricks_connector
+    
+    db = get_databricks_connector('databricks_default')
+    notebook_path = context.get('params', {}).get('notebook_path')
+    
+    logger.info(f"Running notebook: {notebook_path}")
+    
+    url = f"https://{db.host}/api/2.1/jobs/runs/submit"
+    payload = {
+        'run_name': f"Airflow: {context['task_instance'].task_id}",
+        'existing_cluster_id': db.cluster_id,
+        'notebook_task': {
+            'notebook_path': notebook_path,
+            'base_parameters': context.get('params', {}).get('parameters', {})
+        }
+    }
+    
+    response = db.session.post(url, json=payload)
+    response.raise_for_status()
+    
+    run_id = response.json().get('run_id')
+    logger.info(f"✓ Notebook started: {run_id}")
+    
+    return {'notebook': notebook_path, 'run_id': run_id}
+
+
 # DAG definition
 default_args = {
     'owner': 'airflow',
