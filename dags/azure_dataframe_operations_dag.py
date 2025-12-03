@@ -161,7 +161,7 @@ with DAG(
     'azure_dataframe_operations',
     default_args=default_args,
     description='DataFrame operations with Azure Blob Storage',
-    schedule_interval='@daily',
+    schedule='@daily',
     catchup=False,
     tags=['azure', 'blob', 'dataframe', 'pandas', 'example'],
 ) as dag:

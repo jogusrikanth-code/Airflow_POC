@@ -166,7 +166,7 @@ with DAG(
     'azure_blob_file_check',
     default_args=default_args,
     description='Check for file existence in Azure Blob Storage',
-    schedule_interval='@hourly',
+    schedule='@hourly',
     catchup=False,
     tags=['azure', 'blob', 'file-check', 'example'],
 ) as dag:

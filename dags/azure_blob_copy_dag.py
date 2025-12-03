@@ -125,7 +125,7 @@ with DAG(
     'azure_blob_copy_operations',
     default_args=default_args,
     description='Copy files between Azure Blob containers and storage accounts',
-    schedule_interval='@daily',
+    schedule='@daily',
     catchup=False,
     tags=['azure', 'blob', 'copy', 'example'],
 ) as dag:
