@@ -27,19 +27,19 @@ logs/
 dags/__pycache__/
 plugins/__pycache__/
 
-# Archive/backup
-archive/
+# Backup files
 *.bak
 *.tmp
-*.zip
 
 # Temporary files from git operations
-replace.txt
-*_CLEANUP_SUMMARY.md
+# (Historical versions kept in archive/ folder)
+# replace.txt
+# *_CLEANUP_SUMMARY.md
 
-# SQL query scratch files (keep the main airflow_queries.sql)
-Airflow.pgsql
-*.pgsql
+# SQL query scratch files
+# (Main query file: airflow_queries.sql)
+# Airflow.pgsql
+# *.pgsql
 
 # IDE
 .vscode/
