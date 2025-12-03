@@ -1,0 +1,169 @@
+# Slack Alerting Configuration for Airflow Support Team
+
+# Add this to your Helm values.yaml to enable Slack alerts
+
+extraEnv:
+  # Slack webhook for alerts
+  - name: SLACK_WEBHOOK_URL
+    valueFrom:
+      secretKeyRef:
+        name: airflow-slack-webhook
+        key: webhook-url
+        
+  # Support team configuration
+  - name: SUPPORT_TEAM_SLACK_CHANNEL
+    value: "#airflow-alerts"
+    
+  - name: CRITICAL_ALERTS_CHANNEL
+    value: "#airflow-critical"
+
+# Create Kubernetes secret for Slack webhook
+# kubectl create secret generic airflow-slack-webhook \
+#   --from-literal=webhook-url=https://hooks.slack.com/services/YOUR/WEBHOOK/URL
+
+---
+# Example Python function to add to DAGs for Slack notifications
+
+# Add this to your DAG files:
+"""
+from airflow.providers.slack.operators.slack_webhook import SlackWebhookOperator
+import os
+
+def task_failure_alert(context):
+    '''Send Slack alert when task fails.'''
+    slack_webhook = SlackWebhookOperator(
+        task_id='slack_alert',
+        http_conn_id='slack_webhook',
+        message=f'''
+:red_circle: *Task Failed*
+*DAG*: {context.get('task_instance').dag_id}
+*Task*: {context.get('task_instance').task_id}
+*Execution Time*: {context.get('execution_date')}
+*Log*: {context.get('task_instance').log_url}
+        ''',
+        username='Airflow Bot',
+        channel=os.getenv('SUPPORT_TEAM_SLACK_CHANNEL', '#airflow-alerts')
+    )
+    return slack_webhook.execute(context=context)
+
+# Add to your DAG default_args:
+default_args = {
+    'owner': 'airflow',
+    'on_failure_callback': task_failure_alert,
+    # ... other args
+}
+"""
+
+---
+# Slack Message Templates
+
+# Success Message
+success_template: |
+  :white_check_mark: *DAG Succeeded*
+  *DAG*: {dag_id}
+  *Duration*: {duration}
+  *Execution Date*: {execution_date}
+
+# Failure Message
+failure_template: |
+  :red_circle: *DAG Failed*
+  *DAG*: {dag_id}
+  *Task*: {task_id}
+  *Execution Date*: {execution_date}
+  *Error*: {error}
+  *Logs*: {log_url}
+  
+  *Action Required*: Support team please investigate
+
+# Critical Alert
+critical_template: |
+  :rotating_light: *CRITICAL ALERT* :rotating_light:
+  *Component*: {component}
+  *Issue*: {issue}
+  *Impact*: Production workloads affected
+  
+  @here - Immediate attention required!
+  
+  *Logs*: {log_url}
+  *Runbook*: {runbook_url}
+
+# Daily Summary
+summary_template: |
+  :bar_chart: *Daily Airflow Summary*
+  
+  *Date*: {date}
+  *Health Score*: {health_score}%
+  
+  *DAG Runs*:
+  • Success: {success_count} :white_check_mark:
+  • Failed: {failed_count} :x:
+  • Running: {running_count} :arrows_counterclockwise:
+  
+  *By Service*:
+  • Azure: {azure_success_rate}%
+  • Databricks: {databricks_success_rate}%
+  • Power BI: {powerbi_success_rate}%
+  • On-Prem: {onprem_success_rate}%
+  
+  {alerts_section}
+
+---
+# Slack Webhook Connection Setup
+
+# In Airflow UI, create a new HTTP connection:
+# Connection ID: slack_webhook
+# Connection Type: HTTP
+# Host: https://hooks.slack.com/services
+# Password: YOUR/WEBHOOK/PATH
+
+---
+# Integration with monitoring_api_exporter_dag.py
+
+# Replace the send_alerts function with:
+"""
+def send_alerts(**context):
+    '''Send alerts to support team via Slack.'''
+    from airflow.providers.slack.operators.slack_webhook import SlackWebhookOperator
+    import os
+    
+    ti = context['task_instance']
+    metrics = ti.xcom_pull(task_ids='export_metrics')
+    alerts = metrics.get('alerts', [])
+    
+    if not alerts:
+        return {'alerts_sent': 0}
+    
+    for alert in alerts:
+        severity = alert['severity']
+        message = alert['message']
+        action = alert['action']
+        
+        # Determine emoji and channel
+        if severity == 'critical':
+            emoji = ':rotating_light:'
+            channel = os.getenv('CRITICAL_ALERTS_CHANNEL', '#airflow-critical')
+        elif severity == 'warning':
+            emoji = ':warning:'
+            channel = os.getenv('SUPPORT_TEAM_SLACK_CHANNEL', '#airflow-alerts')
+        else:
+            emoji = ':information_source:'
+            channel = os.getenv('SUPPORT_TEAM_SLACK_CHANNEL', '#airflow-alerts')
+        
+        slack_msg = f'''
+{emoji} *{severity.upper()} Alert*
+*Message*: {message}
+*Action*: {action}
+*Time*: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+        '''
+        
+        slack_alert = SlackWebhookOperator(
+            task_id=f'slack_alert_{severity}',
+            http_conn_id='slack_webhook',
+            message=slack_msg,
+            channel=channel,
+            username='Airflow Monitor'
+        )
+        slack_alert.execute(context=context)
+    
+    return {'alerts_sent': len(alerts)}
+"""

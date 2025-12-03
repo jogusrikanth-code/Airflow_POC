@@ -1,0 +1,214 @@
+# Grafana Dashboard for Airflow POC
+# Import this JSON into Grafana for instant monitoring
+
+{
+  "dashboard": {
+    "title": "Airflow Enterprise Monitoring",
+    "uid": "airflow-enterprise",
+    "timezone": "browser",
+    "refresh": "30s",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Overall Health",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "airflow_scheduler_heartbeat",
+            "legendFormat": "Scheduler Healthy"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "thresholds": {
+              "steps": [
+                {"value": 0, "color": "red"},
+                {"value": 1, "color": "green"}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 2,
+        "title": "DAG Success Rate (24h)",
+        "type": "gauge",
+        "targets": [
+          {
+            "expr": "sum(rate(airflow_dag_run_success[24h])) / sum(rate(airflow_dag_run_total[24h])) * 100",
+            "legendFormat": "Success %"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "min": 0,
+            "max": 100,
+            "thresholds": {
+              "steps": [
+                {"value": 0, "color": "red"},
+                {"value": 80, "color": "yellow"},
+                {"value": 95, "color": "green"}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 3,
+        "title": "Active DAG Runs",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "airflow_dag_run_running",
+            "legendFormat": "{{dag_id}}"
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "title": "Failed DAGs (Last Hour)",
+        "type": "table",
+        "targets": [
+          {
+            "expr": "topk(10, increase(airflow_dag_run_failed[1h]))",
+            "format": "table"
+          }
+        ]
+      },
+      {
+        "id": 5,
+        "title": "Task Duration by DAG",
+        "type": "heatmap",
+        "targets": [
+          {
+            "expr": "airflow_task_instance_duration{dag_id=~\"azure_.*|databricks_.*|powerbi_.*|onprem_.*\"}",
+            "legendFormat": "{{dag_id}}"
+          }
+        ]
+      },
+      {
+        "id": 6,
+        "title": "DAGs by Category",
+        "type": "piechart",
+        "targets": [
+          {
+            "expr": "count by (dag_category) (airflow_dag_info)",
+            "legendFormat": "{{dag_category}}"
+          }
+        ]
+      },
+      {
+        "id": 7,
+        "title": "Queue Size",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "airflow_executor_queue_size",
+            "legendFormat": "Tasks Queued"
+          }
+        ]
+      },
+      {
+        "id": 8,
+        "title": "Recent Failures (24h)",
+        "type": "logs",
+        "targets": [
+          {
+            "expr": "{job=\"airflow\"} |~ \"ERROR|FAILED\"",
+            "queryType": "logql"
+          }
+        ]
+      },
+      {
+        "id": 9,
+        "title": "Azure DAGs Status",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "sum(airflow_dag_run_success{dag_id=~\"azure_.*\"})",
+            "legendFormat": "Success"
+          },
+          {
+            "expr": "sum(airflow_dag_run_failed{dag_id=~\"azure_.*\"})",
+            "legendFormat": "Failed"
+          }
+        ]
+      },
+      {
+        "id": 10,
+        "title": "Databricks DAGs Status",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "sum(airflow_dag_run_success{dag_id=~\"databricks_.*\"})",
+            "legendFormat": "Success"
+          },
+          {
+            "expr": "sum(airflow_dag_run_failed{dag_id=~\"databricks_.*\"})",
+            "legendFormat": "Failed"
+          }
+        ]
+      },
+      {
+        "id": 11,
+        "title": "Power BI DAGs Status",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "sum(airflow_dag_run_success{dag_id=~\"powerbi_.*\"})",
+            "legendFormat": "Success"
+          },
+          {
+            "expr": "sum(airflow_dag_run_failed{dag_id=~\"powerbi_.*\"})",
+            "legendFormat": "Failed"
+          }
+        ]
+      },
+      {
+        "id": 12,
+        "title": "On-Prem DAGs Status",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "sum(airflow_dag_run_success{dag_id=~\"onprem_.*\"})",
+            "legendFormat": "Success"
+          },
+          {
+            "expr": "sum(airflow_dag_run_failed{dag_id=~\"onprem_.*\"})",
+            "legendFormat": "Failed"
+          }
+        ]
+      }
+    ],
+    "templating": {
+      "list": [
+        {
+          "name": "environment",
+          "type": "query",
+          "query": "label_values(airflow_dag_run_total, environment)",
+          "current": {"value": "prod"},
+          "multi": false
+        },
+        {
+          "name": "dag_category",
+          "type": "custom",
+          "options": ["All", "Azure", "Databricks", "PowerBI", "OnPrem"],
+          "current": {"value": "All"}
+        }
+      ]
+    },
+    "annotations": {
+      "list": [
+        {
+          "name": "Deployments",
+          "datasource": "Prometheus",
+          "expr": "changes(airflow_version_info[5m]) > 0"
+        }
+      ]
+    }
+  }
+}

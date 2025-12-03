@@ -1,0 +1,245 @@
+# Prometheus Alerting Rules for Airflow
+# These alerts will notify the support team
+
+groups:
+  - name: airflow_critical
+    interval: 30s
+    rules:
+      # Scheduler Health
+      - alert: AirflowSchedulerDown
+        expr: up{job="airflow-scheduler"} == 0
+        for: 5m
+        labels:
+          severity: critical
+          team: support
+        annotations:
+          summary: "Airflow Scheduler is down"
+          description: "Scheduler {{ $labels.instance }} has been down for 5 minutes"
+          action: "Check scheduler pod logs and restart if necessary"
+          
+      # Webserver Health
+      - alert: AirflowWebserverDown
+        expr: up{job="airflow-webserver"} == 0
+        for: 3m
+        labels:
+          severity: critical
+          team: support
+        annotations:
+          summary: "Airflow Webserver is down"
+          description: "Webserver {{ $labels.instance }} is unreachable"
+          action: "Check webserver pod and ingress configuration"
+          
+      # Database Connectivity
+      - alert: AirflowDatabaseConnectionFailed
+        expr: airflow_database_connection_errors > 0
+        for: 2m
+        labels:
+          severity: critical
+          team: support
+        annotations:
+          summary: "Airflow cannot connect to database"
+          description: "Database connection failures detected"
+          action: "Check PostgreSQL service and credentials"
+
+  - name: airflow_dag_failures
+    interval: 60s
+    rules:
+      # High DAG Failure Rate
+      - alert: HighDAGFailureRate
+        expr: |
+          (
+            sum(rate(airflow_dag_run_failed[1h])) 
+            / 
+            sum(rate(airflow_dag_run_total[1h]))
+          ) > 0.3
+        for: 10m
+        labels:
+          severity: warning
+          team: support
+        annotations:
+          summary: "High DAG failure rate detected"
+          description: "More than 30% of DAG runs are failing"
+          action: "Review recent DAG changes and check logs"
+          
+      # Critical DAG Failed
+      - alert: CriticalDAGFailed
+        expr: |
+          increase(airflow_dag_run_failed{
+            dag_id=~"onprem_to_databricks.*|powerbi_scheduled_refresh"
+          }[30m]) > 0
+        labels:
+          severity: critical
+          team: support
+        annotations:
+          summary: "Critical DAG {{ $labels.dag_id }} failed"
+          description: "Production-critical DAG has failed"
+          action: "Immediate investigation required - check DAG logs"
+          
+      # Long Running DAG
+      - alert: DAGRunningTooLong
+        expr: |
+          airflow_dag_run_duration_seconds > 7200
+        for: 5m
+        labels:
+          severity: warning
+          team: support
+        annotations:
+          summary: "DAG {{ $labels.dag_id }} running longer than expected"
+          description: "DAG has been running for over 2 hours"
+          action: "Check for stuck tasks or performance issues"
+
+  - name: airflow_task_failures
+    interval: 60s
+    rules:
+      # Task Retry Storm
+      - alert: TaskRetryStorm
+        expr: |
+          rate(airflow_task_instance_retries[5m]) > 5
+        for: 10m
+        labels:
+          severity: warning
+          team: support
+        annotations:
+          summary: "High task retry rate detected"
+          description: "Tasks are being retried excessively"
+          action: "Check for systemic issues causing task failures"
+          
+      # Task Queue Buildup
+      - alert: TaskQueueBuildup
+        expr: airflow_executor_queue_size > 50
+        for: 15m
+        labels:
+          severity: warning
+          team: support
+        annotations:
+          summary: "Task queue is growing"
+          description: "{{ $value }} tasks queued - workers may be overloaded"
+          action: "Check worker availability and consider scaling"
+
+  - name: airflow_resource_alerts
+    interval: 60s
+    rules:
+      # Pool Slots Exhausted
+      - alert: PoolSlotsExhausted
+        expr: airflow_pool_slots_available == 0
+        for: 10m
+        labels:
+          severity: warning
+          team: support
+        annotations:
+          summary: "Pool {{ $labels.pool }} has no available slots"
+          description: "All pool slots are in use"
+          action: "Review pool configuration or increase slots"
+          
+      # Database Connections High
+      - alert: DatabaseConnectionsHigh
+        expr: airflow_database_connections > 80
+        for: 10m
+        labels:
+          severity: warning
+          team: support
+        annotations:
+          summary: "High database connection count"
+          description: "{{ $value }} database connections active"
+          action: "Check for connection leaks or increase pool size"
+
+  - name: airflow_performance
+    interval: 120s
+    rules:
+      # Scheduler Heartbeat Delay
+      - alert: SchedulerHeartbeatDelay
+        expr: |
+          (time() - airflow_scheduler_heartbeat) > 60
+        for: 5m
+        labels:
+          severity: warning
+          team: support
+        annotations:
+          summary: "Scheduler heartbeat delayed"
+          description: "Scheduler may be struggling with workload"
+          action: "Check scheduler CPU/memory usage"
+          
+      # DAG File Processing Time
+      - alert: SlowDAGFileParsing
+        expr: airflow_dag_file_parse_duration_seconds > 30
+        for: 10m
+        labels:
+          severity: info
+          team: support
+        annotations:
+          summary: "DAG file parsing is slow"
+          description: "DAG files taking over 30 seconds to parse"
+          action: "Review DAG complexity and consider optimization"
+
+  - name: airflow_service_specific
+    interval: 60s
+    rules:
+      # Azure Service Issues
+      - alert: AzureDAGsFailingConsistently
+        expr: |
+          sum(rate(airflow_dag_run_failed{dag_id=~"azure_.*"}[1h])) > 2
+        for: 10m
+        labels:
+          severity: warning
+          team: support
+          service: azure
+        annotations:
+          summary: "Multiple Azure DAG failures"
+          description: "Azure integration DAGs are failing"
+          action: "Check Azure credentials and connectivity"
+          
+      # Databricks Service Issues
+      - alert: DatabricksDAGsFailingConsistently
+        expr: |
+          sum(rate(airflow_dag_run_failed{dag_id=~"databricks_.*"}[1h])) > 2
+        for: 10m
+        labels:
+          severity: warning
+          team: support
+          service: databricks
+        annotations:
+          summary: "Multiple Databricks DAG failures"
+          description: "Databricks integration DAGs are failing"
+          action: "Check Databricks token and cluster availability"
+          
+      # Power BI Service Issues
+      - alert: PowerBIRefreshFailing
+        expr: |
+          increase(airflow_dag_run_failed{dag_id=~"powerbi_.*"}[2h]) > 1
+        for: 5m
+        labels:
+          severity: warning
+          team: support
+          service: powerbi
+        annotations:
+          summary: "Power BI refresh operations failing"
+          description: "Power BI DAGs are experiencing failures"
+          action: "Check Power BI service health and credentials"
+          
+      # On-Prem Connectivity Issues
+      - alert: OnPremConnectivityIssues
+        expr: |
+          sum(rate(airflow_dag_run_failed{dag_id=~"onprem_.*"}[1h])) > 1
+        for: 10m
+        labels:
+          severity: critical
+          team: support
+          service: onprem
+        annotations:
+          summary: "On-premises connectivity issues"
+          description: "On-prem database DAGs failing"
+          action: "Check VPN/network connectivity and SQL Server availability"
+
+  - name: airflow_sla_alerts
+    interval: 300s
+    rules:
+      # SLA Breach
+      - alert: DAGSLABreach
+        expr: airflow_sla_breached > 0
+        labels:
+          severity: warning
+          team: support
+        annotations:
+          summary: "SLA breached for DAG {{ $labels.dag_id }}"
+          description: "DAG completed outside SLA window"
+          action: "Review DAG performance and adjust schedule or SLA"

@@ -1,0 +1,83 @@
+# Prometheus Configuration for Airflow Monitoring
+# Place this in your Prometheus config directory
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'airflow-poc'
+    environment: 'production'
+
+# Alertmanager configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+            - alertmanager:9093
+
+# Load alerting rules
+rule_files:
+  - 'alerting-rules.yaml'
+
+# Scrape configurations
+scrape_configs:
+  # Airflow Webserver metrics
+  - job_name: 'airflow-webserver'
+    static_configs:
+      - targets: ['airflow-webserver:8080']
+    metrics_path: '/admin/metrics'
+    scrape_interval: 30s
+    
+  # Airflow Scheduler metrics
+  - job_name: 'airflow-scheduler'
+    static_configs:
+      - targets: ['airflow-scheduler:8080']
+    metrics_path: '/admin/metrics'
+    scrape_interval: 30s
+    
+  # Airflow Workers (Celery)
+  - job_name: 'airflow-workers'
+    static_configs:
+      - targets: 
+          - 'airflow-worker-0:8080'
+          - 'airflow-worker-1:8080'
+          - 'airflow-worker-2:8080'
+    metrics_path: '/admin/metrics'
+    scrape_interval: 30s
+
+  # PostgreSQL (Airflow metadata DB)
+  - job_name: 'airflow-postgres'
+    static_configs:
+      - targets: ['postgres-exporter:9187']
+    scrape_interval: 30s
+
+  # Redis (if using Celery)
+  - job_name: 'airflow-redis'
+    static_configs:
+      - targets: ['redis-exporter:9121']
+    scrape_interval: 30s
+
+  # Custom metrics from monitoring API
+  - job_name: 'airflow-custom-metrics'
+    static_configs:
+      - targets: ['airflow-webserver:8080']
+    metrics_path: '/api/v1/monitoring/metrics'
+    scrape_interval: 60s
+
+# For Kubernetes deployment
+  - job_name: 'airflow-kubernetes'
+    kubernetes_sd_configs:
+      - role: pod
+        namespaces:
+          names:
+            - airflow
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_label_component]
+        regex: '(webserver|scheduler|worker)'
+        action: keep
+      - source_labels: [__meta_kubernetes_pod_label_component]
+        target_label: component
+      - source_labels: [__address__]
+        target_label: __address__
+        regex: '([^:]+):.*'
+        replacement: '${1}:8080'
