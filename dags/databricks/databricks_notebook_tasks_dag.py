@@ -9,8 +9,11 @@ Examples:
 """
 
 from airflow import DAG
-from airflow.providers.databricks.operators.databricks import DatabricksSubmitRunOperator
+from airflow.operators.python import PythonOperator
 from datetime import datetime, timedelta
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 # DAG definition
@@ -34,57 +37,41 @@ with DAG(
 ) as dag:
     
     # Simple single notebook task
-    simple_notebook = DatabricksSubmitRunOperator(
+    simple_notebook = PythonOperator(
         task_id='run_notebook_task',
-        databricks_conn_id='databricks_default',
-        notebook_task={
+        python_callable=run_notebook,
+        params={
             'notebook_path': '/Workspace/Users/example@company.com/ETL_Notebook',
-            'base_parameters': {
-                'env': 'production',
-                'date': '{{ ds }}'
-            }
-        },
-        existing_cluster_id='{{ conn.databricks_default.extra_dejson.cluster_id }}'
+            'parameters': {'env': 'production'}
+        }
     )
     
     # ETL Pipeline with dependencies: Extract >> Transform >> Load
-    extract = DatabricksSubmitRunOperator(
+    extract = PythonOperator(
         task_id='extract_data',
-        databricks_conn_id='databricks_default',
-        notebook_task={
+        python_callable=run_notebook,
+        params={
             'notebook_path': '/Workspace/Shared/01_Extract_Data',
-            'base_parameters': {
-                'source': 'sql_server',
-                'table': 'sales_data'
-            }
-        },
-        existing_cluster_id='{{ conn.databricks_default.extra_dejson.cluster_id }}'
+            'parameters': {'source': 'sql_server', 'table': 'sales_data'}
+        }
     )
     
-    transform = DatabricksSubmitRunOperator(
+    transform = PythonOperator(
         task_id='transform_data',
-        databricks_conn_id='databricks_default',
-        notebook_task={
+        python_callable=run_notebook,
+        params={
             'notebook_path': '/Workspace/Shared/02_Transform_Data',
-            'base_parameters': {
-                'input_table': 'raw_sales',
-                'output_table': 'transformed_sales'
-            }
-        },
-        existing_cluster_id='{{ conn.databricks_default.extra_dejson.cluster_id }}'
+            'parameters': {'input_table': 'raw_sales', 'output_table': 'transformed_sales'}
+        }
     )
     
-    load = DatabricksSubmitRunOperator(
+    load = PythonOperator(
         task_id='load_data',
-        databricks_conn_id='databricks_default',
-        notebook_task={
+        python_callable=run_notebook,
+        params={
             'notebook_path': '/Workspace/Shared/03_Load_Data',
-            'base_parameters': {
-                'source_table': 'transformed_sales',
-                'target_warehouse': 'analytics_dw'
-            }
-        },
-        existing_cluster_id='{{ conn.databricks_default.extra_dejson.cluster_id }}'
+            'parameters': {'source_table': 'transformed_sales', 'target_warehouse': 'analytics_dw'}
+        }
     )
     
     # Define task dependencies
