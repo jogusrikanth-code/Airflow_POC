@@ -208,4 +208,4 @@ with DAG(
     
     # Define task dependencies
     check_file >> branch_task >> [process, file_not_found]
-    [wait_multiple, check_pattern]  # Independent tasks
+    wait_multiple >> check_pattern  # Sequential dependency
