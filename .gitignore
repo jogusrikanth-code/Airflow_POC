@@ -31,6 +31,15 @@ plugins/__pycache__/
 archive/
 *.bak
 *.tmp
+*.zip
+
+# Temporary files from git operations
+replace.txt
+*_CLEANUP_SUMMARY.md
+
+# SQL query scratch files (keep the main airflow_queries.sql)
+Airflow.pgsql
+*.pgsql
 
 # IDE
 .vscode/

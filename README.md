@@ -33,41 +33,59 @@ Open http://localhost:8080 (or http://localhost:9090) (username: `admin`, passwo
 
 ```
 Airflow_POC/
-├── README.md
-├── docs/                         # Centralized documentation (use these links)
-│   ├── INDEX.md                  # Documentation map and quick links
-│   ├── AIRFLOW_BASICS.md         # Airflow learning guide
-│   ├── ENTERPRISE_INTEGRATION.md # Enterprise connectors & DAG overview
-│   ├── ENTERPRISE_POC_SUMMARY.md # POC scope and outcomes
-│   ├── SETUP_SUMMARY.md          # Setup decisions and environment notes
-│   ├── LEARNING_CHECKLIST.md     # Learning and validation checklist
-│   └── QUICKSTART.md             # Kubernetes quickstart
-├── KUBERNETES_CLEANUP_SUMMARY.md # Repo & K8s modernization summary
+├── README.md                     # Project overview (you are here)
+├── airflow_queries.sql           # Useful SQL queries for debugging
+│
+├── docs/                         # 📚 Complete documentation
+│   ├── 00_START_HERE.md          # ⭐ Start here - personalized learning path
+│   ├── README.md                 # Documentation hub
+│   ├── INDEX.md                  # Quick navigation & role-based paths
+│   ├── QUICKSTART.md             # Deploy Airflow in 30 minutes
+│   ├── AIRFLOW_BASICS.md         # Complete Airflow learning guide
+│   ├── ARCHITECTURE.md           # System design & components
+│   ├── FOLDER_STRUCTURE.md       # This repo's organization
+│   ├── LEARNING_CHECKLIST.md     # Track your progress
+│   ├── SETUP_SUMMARY.md          # Configuration quick reference
+│   ├── SECRETS_MANAGEMENT.md     # Security best practices
+│   ├── POSTGRES_VSCODE_CONNECTION.md  # Database connection setup
+│   ├── HELM_MIGRATION.md         # Migrate to Helm charts
+│   ├── OPERATIONAL_CHALLENGES.md # Production troubleshooting
+│   ├── ENTERPRISE_*.md           # Enterprise patterns & integrations
+│   ├── astronomer.md             # Managed Airflow platform option
+│   └── ORCHESTRATION_IMPROVEMENTS.md  # Performance optimization
 │
 ├── kubernetes/                   # Kubernetes deployment manifests
-│   ├── README.md                 # K8s deployment guide
-│   ├── postgres.yaml             # PostgreSQL deployment
+│   ├── README.md                 # Deployment guide
+│   ├── postgres.yaml             # PostgreSQL database
 │   ├── airflow.yaml              # Airflow components (webserver, scheduler, worker, Redis)
-│   └── values.yaml               # Helm chart reference values
+│   ├── helm-values.yaml          # Helm chart configuration
+│   └── secrets.yaml              # Secret template (never commit actual secrets!)
 │
-├── dags/                         # DAG definitions scanned by Airflow
-│   ├── __init__.py
-│   ├── demo_dag.py
-│   ├── etl_example_dag.py
-│   └── enterprise_integration_dag.py
+├── dags/                         # 🎯 DAG definitions (Airflow workflows)
+│   ├── demo_dag.py               # Simple starter DAG
+│   ├── etl_example_dag.py        # Full ETL pipeline example
+│   └── enterprise_integration_dag.py  # Enterprise connectors demo
 │
 ├── src/                          # Application source code
-│   ├── connectors/               # On-prem, Azure, Databricks, PowerBI
-│   ├── extract/
-│   ├── transform/
-│   └── load/
+│   ├── connectors/               # Database & API connectors
+│   │   ├── azure_connector.py
+│   │   ├── databricks_connector.py
+│   │   ├── onprem_connector.py
+│   │   └── powerbi_connector.py
+│   ├── extract/                  # Data extraction logic
+│   ├── transform/                # Data transformation logic
+│   └── load/                     # Data loading logic
 │
-├── data/                         # Sample data for local tests
-│   ├── raw/
-│   └── processed/
+├── data/                         # Sample data for local testing
+│   ├── raw/                      # Input data
+│   └── processed/                # Output data
 │
 ├── plugins/                      # Custom Airflow plugins
-└── archive/                      # Archived/legacy files
+│   ├── hooks/                    # Custom connection types
+│   └── operators/                # Custom task types
+│
+└── scripts/                      # Utility scripts
+    └── setup-secrets.ps1         # PowerShell secret setup helper
 ```
 
 ## Runbook
