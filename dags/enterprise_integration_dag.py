@@ -353,7 +353,7 @@ with DAG(
     description='POC: Integration between On-Prem, Azure, Databricks, and Power BI',
     default_args=default_args,
     start_date=datetime(2024, 1, 1),
-    schedule_interval='@daily',  # Run daily
+    schedule='@daily',  # Run daily
     catchup=False,
     tags=['poc', 'integration', 'enterprise'],
     doc_md=__doc__,

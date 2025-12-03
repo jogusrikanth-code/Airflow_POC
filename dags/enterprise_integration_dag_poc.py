@@ -278,7 +278,7 @@ with DAG(
     description='POC: Mock pipeline - no credentials needed',
     default_args=default_args,
     start_date=datetime(2024, 1, 1),
-    schedule_interval='@daily',
+    schedule='@daily',
     catchup=False,
     tags=['poc', 'mock', 'demo'],
     doc_md=__doc__,
