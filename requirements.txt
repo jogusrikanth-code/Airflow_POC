@@ -1,0 +1,30 @@
+# Airflow POC - Python Requirements
+# Install with: pip install -r requirements.txt
+
+# Core Airflow (match version in values.yaml)
+apache-airflow==2.9.3
+
+# Azure Providers
+apache-airflow-providers-microsoft-azure
+
+# Databricks Providers
+apache-airflow-providers-databricks
+
+# Database Connectors
+apache-airflow-providers-postgres
+pyodbc
+psycopg2-binary
+mysql-connector-python
+
+# Data Processing
+pandas
+pyarrow
+
+# Azure Storage
+azure-storage-blob
+
+# Databricks SQL
+databricks-sql-connector
+
+# Power BI
+requests

@@ -8,6 +8,15 @@ namespace: airflow
 defaultAirflowRepository: apache/airflow
 defaultAirflowTag: "2.9.3"
 
+# Extra pip packages to install
+extraPipPackages:
+  - "apache-airflow-providers-databricks"
+  - "apache-airflow-providers-microsoft-azure"
+  - "databricks-sql-connector"
+  - "azure-storage-blob"
+  - "pandas"
+  - "pyarrow"
+
 # PostgreSQL Configuration
 postgresql:
   enabled: false  # Using external PostgreSQL
