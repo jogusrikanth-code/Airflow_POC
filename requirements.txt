@@ -4,14 +4,17 @@
 # Core Airflow (match version in values.yaml)
 apache-airflow==2.9.3
 
-# Azure Providers
+# Cloud Providers
 apache-airflow-providers-microsoft-azure
-
-# Databricks Providers
 apache-airflow-providers-databricks
 
-# Database Connectors
+# Database Providers
 apache-airflow-providers-postgres
+apache-airflow-providers-mysql
+apache-airflow-providers-odbc
+apache-airflow-providers-microsoft-mssql
+
+# Database Connectors
 pyodbc
 psycopg2-binary
 mysql-connector-python
@@ -19,12 +22,20 @@ mysql-connector-python
 # Data Processing
 pandas
 pyarrow
+openpyxl
 
-# Azure Storage
+# Azure Services
 azure-storage-blob
+azure-identity
+azure-mgmt-resource
 
-# Databricks SQL
+# Databricks
 databricks-sql-connector
 
-# Power BI
+# HTTP/API
 requests
+apache-airflow-providers-http
+
+# Common Protocols
+apache-airflow-providers-ftp
+apache-airflow-providers-sftp

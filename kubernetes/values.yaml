@@ -12,10 +12,21 @@ defaultAirflowTag: "2.9.3"
 extraPipPackages:
   - "apache-airflow-providers-databricks"
   - "apache-airflow-providers-microsoft-azure"
+  - "apache-airflow-providers-postgres"
+  - "apache-airflow-providers-mysql"
+  - "apache-airflow-providers-odbc"
+  - "apache-airflow-providers-microsoft-mssql"
+  - "apache-airflow-providers-http"
+  - "apache-airflow-providers-ftp"
+  - "apache-airflow-providers-sftp"
   - "databricks-sql-connector"
   - "azure-storage-blob"
+  - "azure-identity"
   - "pandas"
   - "pyarrow"
+  - "openpyxl"
+  - "pyodbc"
+  - "mysql-connector-python"
 
 # PostgreSQL Configuration
 postgresql:
