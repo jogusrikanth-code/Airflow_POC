@@ -1,13 +1,18 @@
-# Project Folder Structure Guide
+# 📁 Project Folder Structure Guide
 
-## Overview
-This document explains the purpose of each folder in your Airflow POC and best practices for organizing your files.
+Hey there! Welcome to your roadmap for navigating this Airflow project. This guide explains what goes where and why—so you'll never feel lost in the codebase! 🧭
+
+## 🎯 Overview
+
+This project follows industry-standard patterns for organizing Airflow code, making it easy for teams to collaborate and scale.
+
+> **💡 Quick Tip:** Bookmark this page! You'll refer to it often when deciding where to put new files.
 
 ---
 
-## 📂 Directory Reference
+## 🗂️ Directory Reference
 
-### `airflow_home/`
+### 🏗️ `airflow_home/`
 **Purpose:** Airflow configuration and logs directory
 
 **Contents:**
@@ -22,58 +27,67 @@ This document explains the purpose of each folder in your Airflow POC and best p
 
 ---
 
-### `dags/`
-**Purpose:** Airflow DAG definitions
+### 🎯 `dags/`
+**Purpose:** Your Airflow DAG definitions live here
 
 **Contents:**
-- `__init__.py` - Package marker
-- `demo_dag.py` - Simple starter DAG
+- `__init__.py` - Package marker (required!)
+- `demo_dag.py` - Simple starter DAG for learning
 - `etl_example_dag.py` - Full ETL pipeline example
 
-**Best Practices:**
-- ✅ One DAG per file or group related DAGs
-- ✅ Use descriptive names: `daily_sales_etl.py` not `dag1.py`
-- ✅ Add docstrings explaining the DAG purpose
-- ✅ Keep DAG files in this folder only
-- ❌ Don't import from this folder in other modules (creates circular dependencies)
+### ✅ Best Practices:
 
-**Adding Your First DAG:**
-1. Create `my_first_dag.py` in this folder
-2. Define your DAG with unique `dag_id`
-3. Refresh Airflow UI
-4. It will appear in the DAG list
+| Do This ✅ | Avoid This ❌ |
+|-----------|-------------|
+| One DAG per file or group related DAGs | Mixing unrelated workflows in one file |
+| Use descriptive names: `daily_sales_etl.py` | Generic names like `dag1.py` or `test.py` |
+| Add docstrings explaining DAG purpose | No documentation |
+| Keep DAG files only in this folder | Scattered DAGs across project |
+| Import from `src/` for business logic | All code inside DAG files |
+
+> **⚠️ Warning:** Don't import from the `dags/` folder in other modules—it creates circular dependencies!
+
+### 🚀 Adding Your First DAG:
+
+1️⃣ Create `my_first_dag.py` in this folder  
+2️⃣ Define your DAG with unique `dag_id`  
+3️⃣ Refresh Airflow UI (wait ~30 seconds)  
+4️⃣ Your DAG appears in the list! 🎉
 
 ---
 
-### `src/`
-**Purpose:** Application business logic (not Airflow-specific)
+### 💻 `src/`
+**Purpose:** Your application business logic (reusable, testable, Airflow-agnostic code)
+
+> **🎯 Key Principle:** Keep business logic separate from orchestration logic. DAGs define the workflow; `src/` does the actual work.
 
 **Structure:**
 ```
-src/
+src/ 💻
 ├── __init__.py
-├── extract/          # Data extraction logic
+├── extract/ 📥         # Data extraction logic
 │   ├── __init__.py
 │   └── extract_from_source_a.py
-├── transform/        # Data transformation logic
+├── transform/ ⚙️       # Data transformation logic
 │   ├── __init__.py
 │   └── transform_sales_data.py
-├── load/             # Data loading logic
+├── load/ 📤             # Data loading logic
 │   ├── __init__.py
 │   └── load_to_dw.py
-└── utils/            # Shared utilities
-	├── __init__.py
-	└── helpers.py
+└── utils/ 🔧            # Shared utilities
+    ├── __init__.py
+    └── helpers.py
 ```
 
-**Best Practices:**
-- ✅ Keep business logic separate from DAG files
-- ✅ Functions should be reusable and testable
-- ✅ Use meaningful module names
-- ✅ Add docstrings to all functions
-- ✅ Import in DAGs using: `from src.extract.extract_from_source_a import extract_from_source_a`
+### ✅ Best Practices:
 
-**Example Structure for Growing Project:**
+- ✨ **Separation of Concerns:** Business logic here, orchestration in DAGs
+- 🧪 **Reusable Functions:** Write functions that can work standalone
+- 🧙 **Testable Code:** Functions should be unit-testable without Airflow
+- 📝 **Documentation:** Add docstrings to all functions
+- 📦 **Clean Imports:** Use in DAGs: `from src.extract.extract_from_source_a import extract_function`
+
+> **💡 Pro Tip:** If you can test a function without starting Airflow, you've organized it correctly!**Example Structure for Growing Project:**
 ```
 src/
 ├── connectors/       # Database/API connections
