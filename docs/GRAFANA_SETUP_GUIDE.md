@@ -1,9 +1,16 @@
-# Grafana Setup Guide - Step by Step
+# Grafana Setup Guide for Airflow Monitoring
 
-## Prerequisites
-- Grafana is running and accessible
-- Prometheus is running in your Kubernetes cluster
-- You have admin access to Grafana
+## 🎉 Grafana is Deployed and Ready!
+
+**Access Information:**
+- **URL:** http://20.75.172.198
+- **Username:** `admin`
+- **Password:** `NewPassword123`
+
+**Deployed:** December 4, 2025  
+**Version:** Grafana 10.3.0  
+**Namespace:** default  
+**External IP:** 20.75.172.198
 
 ---
 

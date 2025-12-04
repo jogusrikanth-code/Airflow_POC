@@ -1487,6 +1487,46 @@ kubectl logs <pod-name> -n airflow --tail=100
 kubectl logs <pod-name> -n airflow -c base --tail=100
 ```
 
+### Troubleshooting: Storage Account Firewall (403 AuthorizationFailure)
+
+If you get **"This request is not authorized to perform this operation. ErrorCode:AuthorizationFailure"** when accessing Azure Blob Storage from AKS:
+
+**Root Cause:** AKS cluster's outbound IP is not whitelisted in the storage account firewall.
+
+**Step 1: Get AKS Outbound IP**
+```powershell
+# Get the public IP as seen by Azure Storage
+kubectl exec deployment/airflow-scheduler -n airflow -- curl -s ifconfig.me
+# Example output: 4.236.200.164
+```
+
+**Step 2: Add IP to Storage Firewall**
+```powershell
+# Replace with your actual IP from step 1
+az storage account network-rule add `
+  --resource-group bi_lakehouse_dev_rg `
+  --account-name sgbilakehousestoragedev `
+  --ip-address 4.236.200.164
+```
+
+**Step 3: Wait for Propagation**
+- Azure Storage firewall rules can take **5-20 minutes** to fully propagate
+- The rule shows in configuration immediately but may not be enforced yet
+- Be patient and test periodically
+
+**Step 4: Test Connection**
+```powershell
+# Test from AKS cluster
+kubectl exec deployment/airflow-scheduler -n airflow -- python -c "from azure.storage.blob import BlobServiceClient; from airflow.hooks.base import BaseHook; conn = BaseHook.get_connection('azure_blob_default'); client = BlobServiceClient(account_url=f'https://{conn.login}.blob.core.windows.net', credential=conn.password); containers = list(client.list_containers()); print(f'✅ Connected! Found {len(containers)} containers')"
+
+# When successful, you'll see container names
+```
+
+**Note:** If your storage account has private endpoints configured, you may need to use VNet integration instead. Check if `publicNetworkAccess` is `Enabled`:
+```powershell
+az storage account show --name sgbilakehousestoragedev --resource-group bi_lakehouse_dev_rg --query publicNetworkAccess -o tsv
+```
+
 ---
 
 ## Troubleshooting Guide
