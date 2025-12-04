@@ -7,8 +7,8 @@ postgresql:
 # External DB connections
 # NOTE: Passwords should be moved to Kubernetes Secrets for production
 # See kubernetes/secrets.yaml and docs/SECRETS_MANAGEMENT.md
-airflowVersion: "2.9.3"
-executor: CeleryExecutor
+airflowVersion: "3.0.2"
+executor: KubernetesExecutor
 data:
   metadataConnection:
     protocol: postgresql
@@ -26,24 +26,22 @@ data:
     pass: airflow  # TODO: Move to secret - see kubernetes/secrets.yaml
     sslmode: disable
 
-# Enable Redis for CeleryExecutor
+# Disable Redis since we're using KubernetesExecutor (not CeleryExecutor)
 redis:
-  enabled: true
+  enabled: false
 
-# Airflow image (match raw manifests)
+# Airflow image (match current deployment)
 images:
   airflow:
     repository: apache/airflow
-    tag: 2.9.3
+    tag: 3.0.2-python3.11
     pullPolicy: IfNotPresent
 
 # Executor & Core config overrides
 config:
   core:
-    executor: CeleryExecutor
+    executor: KubernetesExecutor
     load_examples: "False"
-  celery:
-    worker_concurrency: 4
 
 # Webserver settings and default admin user
 # NOTE: Admin password should be moved to Kubernetes Secret for production
@@ -94,18 +92,12 @@ scheduler:
       cpu: 1000m
       memory: 1024Mi
 
-workers:
-  replicas: 1
-  resources:
-    requests:
-      cpu: 500m
-      memory: 512Mi
-    limits:
-      cpu: 1000m
-      memory: 1024Mi
-
 # Security: run as airflow user (non-root)
 airflowUser: 50000
+
+# Additional Python packages to install in all Airflow pods
+extraPipPackages:
+  - "apache-airflow-providers-databricks==7.8.0"
 
 flower:
   enabled: false

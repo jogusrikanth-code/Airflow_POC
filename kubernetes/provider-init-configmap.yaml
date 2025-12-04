@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: airflow-provider-init
+  namespace: airflow
+data:
+  install-providers.sh: |
+    #!/bin/bash
+    set -e
+    echo "Installing additional Airflow providers to /opt/providers..."
+    pip install --no-cache-dir --target=/opt/providers apache-airflow-providers-databricks==7.8.0
+    echo "Providers installed successfully!"
+  init-env.sh: |
+    #!/bin/bash
+    # Add providers to Python path
+    export PYTHONPATH="/opt/providers:$PYTHONPATH"
