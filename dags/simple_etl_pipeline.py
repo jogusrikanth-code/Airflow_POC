@@ -1,15 +1,15 @@
 """
-End-to-End ETL Pipeline DAG
-============================
-Simple enterprise data pipeline demonstrating:
+Simple End-to-End ETL Pipeline DAG
+===================================
+Basic linear ETL pipeline demonstrating:
 - Copy files from landing zone to bronze layer (server-side)
-- Validate data quality
+- Validate files exist and are non-empty
 - Copy validated files to silver layer (server-side)
 - Send completion notification
 
 All file operations use Azure server-side copy - no data flows through Airflow!
 
-Schedule: Daily at 2 AM EST
+Schedule: Daily at 2 AM
 """
 
 from airflow import DAG
@@ -112,12 +112,6 @@ def copy_to_silver(**context):
     return {'files_copied': files_copied}
 
 
-
-
-
-
-
-
 def send_notification(**context):
     """Log pipeline completion."""
     execution_date = context['ds']
@@ -136,9 +130,9 @@ default_args = {
 }
 
 with DAG(
-    dag_id='end_to_end_etl_pipeline',
+    dag_id='simple_etl_pipeline',
     default_args=default_args,
-    description='Simple ETL: Landing → Bronze → Silver (all server-side)',
+    description='Simple linear ETL: Landing → Bronze → Silver',
     schedule='0 2 * * *',  # Daily at 2 AM
     start_date=datetime(2025, 12, 1),
     catchup=False,
@@ -148,25 +142,21 @@ with DAG(
     
     start = EmptyOperator(task_id='start')
     
-    # Copy files from landing zone to bronze layer
     copy_bronze = PythonOperator(
         task_id='copy_to_bronze',
         python_callable=copy_to_bronze
     )
     
-    # Validate files in bronze layer
     validate = PythonOperator(
         task_id='validate_bronze',
         python_callable=validate_bronze
     )
     
-    # Copy validated files to silver layer
     copy_silver = PythonOperator(
         task_id='copy_to_silver',
         python_callable=copy_to_silver
     )
     
-    # Send completion notification
     notify = PythonOperator(
         task_id='notify',
         python_callable=send_notification
@@ -174,5 +164,5 @@ with DAG(
     
     end = EmptyOperator(task_id='end')
     
-    # Simple linear flow
+    # Simple linear flow: start → bronze → validate → silver → notify → end
     start >> copy_bronze >> validate >> copy_silver >> notify >> end
