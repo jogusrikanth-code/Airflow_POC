@@ -53,14 +53,38 @@ def copy_files(**context):
             print("⚠️ No files found matching the criteria")
             return
         
-        # Step 5: Copy each file
-        for i, blob in enumerate(files, 1):
-            print(f"[{i}/{len(files)}] Copying: {blob.name}")
-            data = client.get_blob_client(source, blob.name).download_blob().readall()
-            client.get_blob_client(target, blob.name).upload_blob(data, overwrite=True)
-            print(f"  ✓ Done ({len(data)} bytes)")
+        # Step 5: Copy each file (server-side copy - no data flows through Airflow)
+        target_container = client.get_container_client(target)
+        copied_count = 0
+        total_bytes = 0
         
-        print(f"\n✅ Success! Copied {len(files)} files")
+        for i, blob in enumerate(files, 1):
+            print(f"[{i}/{len(files)}] Copying: {blob.name} ({blob.size:,} bytes)")
+            
+            # Build source URL for server-side copy
+            source_url = f"{client.account_url}/{source}/{blob.name}"
+            
+            # Get target blob client
+            target_blob = target_container.get_blob_client(blob.name)
+            
+            # Start server-side copy (Azure handles the transfer internally)
+            copy_result = target_blob.start_copy_from_url(source_url)
+            
+            print(f"  ✓ Copy initiated (Azure is handling the transfer)")
+            
+            copied_count += 1
+            total_bytes += blob.size
+        
+        print(f"\n✅ Success! Initiated {copied_count} file copies")
+        print(f"   Total size: {total_bytes:,} bytes ({total_bytes/1024/1024:.2f} MB)")
+        print(f"   Note: Copies are handled server-side by Azure (no load on Airflow)")
+        
+        return {
+            'files_copied': copied_count,
+            'total_bytes': total_bytes,
+            'source_container': source,
+            'target_container': target
+        }
         
     except Exception as e:
         print(f"\n❌ Error occurred: {type(e).__name__}: {str(e)}")
