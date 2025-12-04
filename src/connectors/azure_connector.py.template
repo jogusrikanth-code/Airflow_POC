@@ -1,0 +1,12 @@
+"""
+Azure Connection Details - TEMPLATE
+====================================
+Copy this file to azure_connector.py and fill in your credentials.
+"""
+
+# Azure Storage Account Details
+AZURE_STORAGE_ACCOUNT = 'your-storage-account-name'
+AZURE_STORAGE_KEY = 'your-storage-key-here'
+
+# Airflow Connection ID
+AZURE_CONN_ID = 'azure_blob_default'

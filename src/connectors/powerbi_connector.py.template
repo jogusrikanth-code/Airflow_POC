@@ -1,0 +1,21 @@
+"""
+Power BI Connection Details - TEMPLATE
+=======================================
+Copy this file to powerbi_connector.py and fill in your credentials.
+"""
+
+# Power BI Service Principal
+POWERBI_CLIENT_ID = 'your-client-id'
+POWERBI_CLIENT_SECRET = 'your-client-secret'
+POWERBI_TENANT_ID = 'your-tenant-id'
+
+# Power BI Workspace & Dataset IDs
+POWERBI_WORKSPACE_ID = 'workspace-guid'
+POWERBI_DATASET_ID = 'dataset-guid'
+
+# API Configuration
+POWERBI_API_URL = 'https://api.powerbi.com/v1.0/myorg'
+POWERBI_SCOPE = 'https://analysis.windows.net/powerbi/api/.default'
+
+# Airflow Connection ID
+POWERBI_CONN_ID = 'powerbi_default'

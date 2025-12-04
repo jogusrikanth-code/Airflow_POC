@@ -14,6 +14,9 @@ __pycache__/
 .env.production
 *.env
 
+# Connector files with credentials (excluded from git)
+src/connectors/*_connector.py
+
 # Kubernetes secrets (never commit actual secrets!)
 kubernetes/secrets-local.yaml
 kubernetes/secrets-generated.yaml
