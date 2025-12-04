@@ -1416,6 +1416,79 @@ git push origin feature/my-dag
 
 ---
 
+## Connecting AKS to Azure Data Lake Storage (ADLS)
+
+### Option 1: Create Azure Blob Storage Connection via UI
+
+1. **Access Airflow UI:** `http://51.8.246.115`
+2. **Navigate to Connections:** Admin → Connections
+3. **Click "+"** to add a new connection
+4. **Configure Connection:**
+   - **Connection ID:** `azure_blob_default`
+   - **Connection Type:** `Azure Blob Storage` (or `wasb`)
+   - **Login:** Your storage account name (e.g., `sgbilakehousestoragedev`)
+   - **Password:** Get your storage account key:
+     ```powershell
+     az storage account keys list --resource-group bi_lakehouse_dev_rg --account-name sgbilakehousestoragedev --query "[0].value" -o tsv
+     ```
+   - **Extra (optional):**
+     ```json
+     {"connection_string": "DefaultEndpointsProtocol=https;AccountName=sgbilakehousestoragedev;AccountKey=YOUR_KEY;EndpointSuffix=core.windows.net"}
+     ```
+5. **Click Save**
+
+### Option 2: Using Managed Identity (Recommended for Production)
+
+**Step 1: Enable Managed Identity on AKS**
+```powershell
+# Get AKS identity
+$aksIdentity = az aks show --name aks-airflow-poc --resource-group bi_lakehouse_dev_rg --query "identityProfile.kubeletidentity.objectId" -o tsv
+
+# Assign Storage Blob Data Contributor role
+az role assignment create --assignee $aksIdentity --role "Storage Blob Data Contributor" --scope "/subscriptions/YOUR_SUBSCRIPTION_ID/resourceGroups/bi_lakehouse_dev_rg/providers/Microsoft.Storage/storageAccounts/sgbilakehousestoragedev"
+```
+
+**Step 2: Configure Connection with Managed Identity**
+- **Connection ID:** `azure_blob_managed_identity`
+- **Connection Type:** `Azure Blob Storage`
+- **Extra:**
+  ```json
+  {"connection_string": "DefaultEndpointsProtocol=https;AccountName=sgbilakehousestoragedev;EndpointSuffix=core.windows.net"}
+  ```
+
+### Troubleshooting: Authentication Token Issues
+
+If you see **"Invalid auth token: Signature verification failed"** in task logs:
+
+```powershell
+# Fix internal API configuration
+helm upgrade airflow apache-airflow/airflow --namespace airflow --reuse-values `
+  --set 'config.core.internal_api_url=http://airflow-api-server:8080/internal-api/v1' `
+  --set 'config.api.auth_backends=airflow.api.auth.backend.basic_auth,airflow.api.auth.backend.session'
+
+# Restart components
+kubectl rollout restart deployment/airflow-scheduler -n airflow
+kubectl rollout restart deployment/airflow-api-server -n airflow
+kubectl rollout restart deployment/airflow-dag-processor -n airflow
+```
+
+### Viewing Task Logs from Failed Pods
+
+If UI shows "Could not read served logs", check pod logs directly:
+
+```powershell
+# List worker pods
+kubectl get pods -n airflow | Select-String "your-dag-name"
+
+# View logs from specific pod
+kubectl logs <pod-name> -n airflow --tail=100
+
+# For pods with multiple containers
+kubectl logs <pod-name> -n airflow -c base --tail=100
+```
+
+---
+
 ## Troubleshooting Guide
 
 ### Problem: Pods Stuck in ImagePullBackOff
