@@ -343,14 +343,12 @@ with DAG(
     with TaskGroup('ingestion', tooltip='Ingest raw data from Azure Blob') as ingestion:
         ingest_data = PythonOperator(
             task_id='ingest_data',
-            python_callable=ingest_from_azure,
-            provide_context=True
+            python_callable=ingest_from_azure
         )
         
         validate_quality = PythonOperator(
             task_id='validate_quality',
-            python_callable=validate_data_quality,
-            provide_context=True
+            python_callable=validate_data_quality
         )
         
         ingest_data >> validate_quality
@@ -359,14 +357,12 @@ with DAG(
     with TaskGroup('transformation', tooltip='Transform data in Databricks') as transformation:
         transform_bronze_to_silver = PythonOperator(
             task_id='transform_bronze_to_silver',
-            python_callable=transform_in_databricks,
-            provide_context=True
+            python_callable=transform_in_databricks
         )
         
         load_to_gold = PythonOperator(
             task_id='load_to_gold',
-            python_callable=load_to_gold_layer,
-            provide_context=True
+            python_callable=load_to_gold_layer
         )
         
         transform_bronze_to_silver >> load_to_gold
@@ -375,15 +371,13 @@ with DAG(
     with TaskGroup('consumption', tooltip='Prepare data for consumption') as consumption:
         refresh_powerbi = PythonOperator(
             task_id='refresh_powerbi',
-            python_callable=refresh_powerbi_dataset,
-            provide_context=True
+            python_callable=refresh_powerbi_dataset
         )
     
     # Final notification
     notify_success = PythonOperator(
         task_id='notify_success',
         python_callable=send_success_notification,
-        provide_context=True,
         trigger_rule='all_success'
     )
     

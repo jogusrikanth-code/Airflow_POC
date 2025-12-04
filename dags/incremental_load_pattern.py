@@ -326,26 +326,22 @@ with DAG(
     
     extract_data = PythonOperator(
         task_id='extract_data',
-        python_callable=extract_incremental_data,
-        provide_context=True
+        python_callable=extract_incremental_data
     )
     
     transform_data = PythonOperator(
         task_id='transform_data',
-        python_callable=transform_incremental_data,
-        provide_context=True
+        python_callable=transform_incremental_data
     )
     
     load_to_data_lake_task = PythonOperator(
         task_id='load_to_data_lake',
-        python_callable=load_to_data_lake,
-        provide_context=True
+        python_callable=load_to_data_lake
     )
     
     update_audit = PythonOperator(
         task_id='update_audit',
-        python_callable=update_audit_log,
-        provide_context=True
+        python_callable=update_audit_log
     )
     
     # Pipeline flow

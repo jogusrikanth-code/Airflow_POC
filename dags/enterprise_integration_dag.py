@@ -19,13 +19,32 @@ from airflow import DAG
 from airflow.operators.python import PythonOperator
 from airflow.exceptions import AirflowException
 
-# Import connectors
-from src.connectors import (
-    fetch_from_onprem,
-    get_azure_storage_connector,
-    get_databricks_connector,
-    get_powerbi_connector,
-)
+# NOTE: This is an older DAG - see the newer DAGs for better patterns:
+# - end_to_end_etl_pipeline.py
+# - incremental_load_pattern.py
+# - powerbi_refresh_pipeline.py
+
+# Import connectors (commented out - use Airflow hooks instead)
+# from src.connectors import (
+#     fetch_from_onprem,
+#     get_azure_storage_connector,
+#     get_databricks_connector,
+#     get_powerbi_connector,
+# )
+
+
+# Placeholder connectors for this legacy DAG
+def fetch_from_onprem(*args, **kwargs):
+    raise NotImplementedError("Use MsSqlHook from airflow.providers.microsoft.mssql.hooks.mssql instead")
+
+def get_azure_storage_connector(*args, **kwargs):
+    raise NotImplementedError("Use WasbHook from airflow.providers.microsoft.azure.hooks.wasb instead")
+
+def get_databricks_connector(*args, **kwargs):
+    raise NotImplementedError("Use DatabricksHook from airflow.providers.databricks.hooks.databricks instead")
+
+def get_powerbi_connector(*args, **kwargs):
+    raise NotImplementedError("Use requests with PowerBI REST API - see powerbi_refresh_pipeline.py")
 
 
 default_args = {

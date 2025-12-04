@@ -269,8 +269,7 @@ with DAG(
     # Check data freshness
     check_freshness = BranchPythonOperator(
         task_id='check_data_freshness',
-        python_callable=check_data_freshness,
-        provide_context=True
+        python_callable=check_data_freshness
     )
     
     # Data is fresh - proceed with refresh
@@ -278,34 +277,29 @@ with DAG(
     
     trigger_refresh = PythonOperator(
         task_id='trigger_refresh',
-        python_callable=trigger_powerbi_refresh,
-        provide_context=True
+        python_callable=trigger_powerbi_refresh
     )
     
     monitor_refresh = PythonOperator(
         task_id='monitor_refresh',
-        python_callable=monitor_powerbi_refresh,
-        provide_context=True
+        python_callable=monitor_powerbi_refresh
     )
     
     send_notification = PythonOperator(
         task_id='send_notification',
-        python_callable=send_refresh_notification,
-        provide_context=True
+        python_callable=send_refresh_notification
     )
     
     # Data is stale - skip refresh
     data_stale = PythonOperator(
         task_id='data_stale',
-        python_callable=handle_stale_data,
-        provide_context=True
+        python_callable=handle_stale_data
     )
     
     # Check failed
     check_failed = PythonOperator(
         task_id='check_failed',
-        python_callable=handle_check_failed,
-        provide_context=True
+        python_callable=handle_check_failed
     )
     
     # End marker
