@@ -2,265 +2,128 @@
 
 ## 🎯 DAG Name: `azure_blob_copy_generic`
 
-Simple, reusable DAG to copy files between any Azure Blob Storage containers.
+Super simple DAG to copy files between Azure Blob Storage containers.
 
-## 🚀 How to Use
+## 🚀 How to Use (3 Easy Steps)
 
 ### 1. Open Airflow UI
 http://51.8.246.115
 
-### 2. Find DAG
+### 2. Find the DAG
 Search for: `azure_blob_copy_generic`
 
-### 3. Trigger with Config
+### 3. Trigger with Your Settings
 
-Click **Trigger DAG w/ config** button and paste one of these examples:
-
----
-
-## 📋 Usage Examples
-
-### Example 1: Copy Single File
-
-Copy one specific file to a different location:
+Click **Trigger DAG w/ config** and enter:
 
 ```json
 {
-  "source_container": "raw-data",
-  "target_container": "processed-data",
-  "source_path": "sales/report.csv",
-  "target_path": "archive/2024/sales/report.csv"
+  "source_container": "where-files-are",
+  "target_container": "where-to-copy",
+  "folder_path": "path/to/folder/"
 }
 ```
 
-**What it does**: Copies `raw-data/sales/report.csv` → `processed-data/archive/2024/sales/report.csv`
+That's it! 🎉
 
 ---
 
-### Example 2: Copy Entire Folder
+## 📋 Real Examples
 
-Copy all files from one folder to another:
-
-```json
-{
-  "source_container": "staging",
-  "target_container": "production",
-  "prefix": "daily-reports/2024-12-03/"
-}
-```
-
-**What it does**: Copies all files in `staging/daily-reports/2024-12-03/` → `production/daily-reports/2024-12-03/`
-
----
-
-### Example 3: Copy Only CSV Files
-
-Copy only CSV files from a folder:
-
-```json
-{
-  "source_container": "raw-data",
-  "target_container": "analytics",
-  "prefix": "exports/",
-  "file_pattern": "*.csv"
-}
-```
-
-**What it does**: Copies only `*.csv` files from `raw-data/exports/` → `analytics/exports/`
-
----
-
-### Example 4: Copy Log Files by Date
-
-Copy log files matching a pattern:
-
-```json
-{
-  "source_container": "logs",
-  "target_container": "archive-logs",
-  "prefix": "application/2024-12/",
-  "file_pattern": "app_*.log"
-}
-```
-
-**What it does**: Copies files like `app_*.log` from `logs/application/2024-12/` → `archive-logs/application/2024-12/`
-
----
-
-### Example 5: Your Seasonal Buy Files (Default)
-
-Already configured as default:
-
+### Example 1: Copy Seasonal Buy Files (Default)
 ```json
 {
   "source_container": "sg-analytics-raw",
   "target_container": "airflow",
-  "prefix": "seasonal_buy/2025-10-13/"
+  "folder_path": "seasonal_buy/2025-10-13/"
 }
 ```
 
-**What it does**: Copies all 40 files from seasonal buy folder
+### Example 2: Copy Daily Reports
+```json
+{
+  "source_container": "staging",
+  "target_container": "production",
+  "folder_path": "daily-reports/2024-12-03/"
+}
+```
 
----
+### Example 3: Copy Sales Data
+```json
+{
+  "source_container": "raw-data",
+  "target_container": "analytics",
+  "folder_path": "sales/december/"
+}
+```
 
-## ⚙️ Configuration Parameters
-
-| Parameter | Required | Description | Example |
-|-----------|----------|-------------|---------|
-| `source_container` | ✅ Yes | Source container name | `"raw-data"` |
-| `target_container` | ✅ Yes | Target container name | `"processed-data"` |
-| `source_path` | ⬜ Optional | Single file path (for copying one file) | `"sales/data.csv"` |
-| `target_path` | ⬜ Optional | Target path (if different from source) | `"archive/sales/data.csv"` |
-| `prefix` | ⬜ Optional | Folder prefix for multiple files | `"reports/2024/"` |
-| `file_pattern` | ⬜ Optional | File pattern to match | `"*.csv"`, `"data_*.txt"` |
-
----
-
-## 🎮 Copy Modes
-
-### Mode 1: Single File Copy
-- Provide: `source_path`
-- Optional: `target_path` (uses same path if not specified)
-- Example: Copy one specific file
-
-### Mode 2: Multiple Files Copy
-- Provide: `prefix` and/or `file_pattern`
-- Copies all matching files
-- Preserves folder structure
-
----
-
-## 📝 Real-World Examples
-
-### Backup Daily Files
+### Example 4: Backup Files
 ```json
 {
   "source_container": "production-data",
   "target_container": "backup",
-  "prefix": "daily-exports/2024-12-03/"
-}
-```
-
-### Move Processed Files to Archive
-```json
-{
-  "source_container": "processing",
-  "target_container": "archive",
-  "source_path": "completed/batch_123.csv",
-  "target_path": "archive/2024/12/batch_123.csv"
-}
-```
-
-### Copy Only Excel Files
-```json
-{
-  "source_container": "reports",
-  "target_container": "shared-reports",
-  "prefix": "quarterly/",
-  "file_pattern": "*.xlsx"
-}
-```
-
-### Replicate Entire Dataset
-```json
-{
-  "source_container": "master-data",
-  "target_container": "dev-data",
-  "prefix": ""
+  "folder_path": "exports/2024/"
 }
 ```
 
 ---
 
-## ✅ Success Indicators
+## ⚙️ Parameters (Only 3!)
 
-After triggering, check the logs:
-
-**Single File Mode:**
-```
-✓ File copied successfully!
-Status: success
-Files copied: 1
-```
-
-**Multiple Files Mode:**
-```
-Found 40 files to copy
-  ✓ Copied: file1.txt
-  ✓ Copied: file2.txt
-  ...
-Copy completed: 40 succeeded, 0 failed
-```
+| Parameter | What it does | Example |
+|-----------|--------------|---------|
+| `source_container` | Container to copy FROM | `"raw-data"` |
+| `target_container` | Container to copy TO | `"processed-data"` |
+| `folder_path` | Folder to copy | `"sales/2024-12/"` |
 
 ---
 
-## 🔍 Monitoring
+## ✅ What Happens
 
-### In Airflow UI:
-1. Click on DAG run
-2. Click on `copy_files` task
-3. View logs for progress
-4. Check return value for summary
+1. **Finds all files** in source container's folder
+2. **Copies each file** to target container
+3. **Keeps same folder structure**
+4. **Shows progress** in logs
 
-### In Azure Portal:
-1. Go to Storage Account
-2. Open target container
-3. Verify files appeared
+---
+
+## 🔍 Check Progress
+
+In Airflow UI:
+1. Click on the DAG run
+2. Click on `copy_files` task  
+3. Click **Logs**
+4. You'll see:
+   ```
+   Found 40 files to copy
+     Copying: file1.txt
+     ✓ Success
+     Copying: file2.txt
+     ✓ Success
+   Done! Copied 40 files, 0 failed
+   ```
 
 ---
 
 ## 🛠️ Troubleshooting
 
-### "Connection 'azure_blob_default' not found"
-**Fix**: Create the connection first (see main setup guide)
+**"Connection not found"**  
+→ Create `azure_blob_default` connection first (see main setup guide)
 
-### "Source file not found"
-**Fix**: Check `source_path` is correct and file exists
+**"No files found"**  
+→ Check `folder_path` is correct
 
-### "Container not found"
-**Fix**: Create target container first:
-```powershell
-az storage container create --name YOUR_CONTAINER --account-name sgbilakehousestoragedev
-```
-
-### No files copied (0 matched)
-**Fix**: Check `prefix` and `file_pattern` are correct
+**"Container not found"**  
+→ Create the target container first
 
 ---
 
-## 💡 Pro Tips
+## 💡 Tips
 
-1. **Test with single file first** - Use `source_path` to copy one file and verify it works
-
-2. **Use prefix for organization** - Keep folder structure by using `prefix`
-
-3. **Pattern matching** - Use `*.csv`, `*.txt`, `data_*`, etc. to filter files
-
-4. **Same path vs different path**:
-   - Omit `target_path` to keep same folder structure
-   - Specify `target_path` to reorganize files
-
-5. **Check logs** - Always check task logs for detailed progress
-
----
-
-## 🎯 Quick Start (3 Steps)
-
-1. **Ensure connection exists**: `azure_blob_default` in Airflow connections
-
-2. **Trigger DAG** with your config (copy any example above)
-
-3. **Monitor** the task logs to see progress
-
-That's it! 🚀
-
----
-
-## 📚 Related Documentation
-
-- Full setup: `docs/AZURE_BLOB_COPY_SETUP.md`
-- Other example: `dags/azure_blob_copy_seasonal_buy.py`
-- Storage key script: `scripts/get-azure-storage-key.ps1`
+- Leave trailing `/` in folder_path: `"sales/2024/"`
+- Copies **all files** in that folder
+- Files keep their original names and structure
+- Safe to re-run (overwrites existing files)
 
 ---
 
