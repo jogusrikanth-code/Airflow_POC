@@ -132,37 +132,46 @@ default_args = {
 with DAG(
     dag_id='simple_etl_pipeline',
     default_args=default_args,
-    description='Simple linear ETL: Landing → Bronze → Silver',
+    description='📦 Simple Linear ETL | Landing → Bronze → Silver',
     schedule='0 2 * * *',  # Daily at 2 AM
     start_date=datetime(2025, 12, 1),
     catchup=False,
-    tags=['etl', 'simple'],
-    doc_md=__doc__
+    tags=['📦 etl', '🟢 simple', '☁️ azure', '⚡ fast', '✅ production'],
+    doc_md=__doc__,
+    params={
+        'source_container': 'sg-analytics-raw',
+        'bronze_container': 'sg-analytics-bronze',
+        'silver_container': 'sg-analytics-silver'
+    }
 ) as dag:
     
-    start = EmptyOperator(task_id='start')
+    start = EmptyOperator(task_id='start', doc_md="### 🚀 Pipeline Start\nInitialize ETL pipeline execution")
     
     copy_bronze = PythonOperator(
         task_id='copy_to_bronze',
-        python_callable=copy_to_bronze
+        python_callable=copy_to_bronze,
+        doc_md="### 🔵 Bronze Layer Ingestion\n**Action**: Server-side copy from landing zone\n**Performance**: ~100x faster than download/upload"
     )
     
     validate = PythonOperator(
         task_id='validate_bronze',
-        python_callable=validate_bronze
+        python_callable=validate_bronze,
+        doc_md="### 🔍 Data Quality Validation\n**Checks**: File existence, non-zero size\n**Fail Fast**: Stops pipeline on critical issues"
     )
     
     copy_silver = PythonOperator(
         task_id='copy_to_silver',
-        python_callable=copy_to_silver
+        python_callable=copy_to_silver,
+        doc_md="### 🟡 Silver Layer Promotion\n**Action**: Promote validated files to silver layer\n**Method**: Azure server-side copy"
     )
     
     notify = PythonOperator(
         task_id='notify',
-        python_callable=send_notification
+        python_callable=send_notification,
+        doc_md="### 🔔 Success Notification\n**Action**: Log completion metrics\n**Status**: Pipeline completed successfully ✓"
     )
     
-    end = EmptyOperator(task_id='end')
+    end = EmptyOperator(task_id='end', doc_md="### ✅ Pipeline Complete\nAll stages executed successfully")
     
     # Simple linear flow: start → bronze → validate → silver → notify → end
     start >> copy_bronze >> validate >> copy_silver >> notify >> end
