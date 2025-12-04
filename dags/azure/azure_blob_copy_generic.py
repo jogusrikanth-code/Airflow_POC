@@ -2,30 +2,25 @@
 Simple Azure File Copy
 =======================
 Copies files from one Azure container to another.
-Change the 3 params when triggering the DAG.
+Uses Airflow connection: azure_blob_default
 """
 from airflow import DAG
 from airflow.operators.python import PythonOperator
+from airflow.providers.microsoft.azure.hooks.wasb import WasbHook
 from datetime import datetime
-import sys
-sys.path.insert(0, '/opt/airflow/dags/repo')
-from src.connectors.azure_connector import AZURE_STORAGE_ACCOUNT, AZURE_STORAGE_KEY
 
 
 def copy_files(**context):
     """Main function: Find files and copy them."""
-    from azure.storage.blob import BlobServiceClient
     
     # Step 1: Get settings
     source = context['params']['source_container']
     target = context['params']['target_container']
     folder = context['params']['folder_path']
     
-    # Step 2: Connect to Azure
-    client = BlobServiceClient(
-        account_url=f"https://{AZURE_STORAGE_ACCOUNT}.blob.core.windows.net",
-        credential=AZURE_STORAGE_KEY
-    )
+    # Step 2: Connect to Azure using Airflow connection
+    hook = WasbHook(wasb_conn_id='azure_blob_default')
+    client = hook.get_conn()
     
     # Step 3: Find files in source folder
     source_container = client.get_container_client(source)
