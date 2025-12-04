@@ -7,6 +7,12 @@ Demonstrates enterprise pattern for incremental data loading:
 - Handle late-arriving data
 - Maintain audit trail
 
+Architecture:
+- SQL queries executed on source database (computation pushed down)
+- Transformations done locally on Airflow worker
+- Azure uploads use streaming (minimal memory footprint)
+- Server-side operations where possible
+
 Use Case: Loading transactional data from on-prem SQL Server to Azure Data Lake
 
 Schedule: Every 15 minutes during business hours
@@ -78,6 +84,7 @@ def extract_incremental_data(**context):
     record_count = len(df)
     
     logger.info(f"Extracted {record_count} new/changed records")
+    logger.info("   Note: SQL query executed on source database (computation pushed down)")
     
     if record_count == 0:
         logger.info("No new data to process - skipping downstream tasks")
@@ -150,6 +157,7 @@ def transform_incremental_data(**context):
     
     logger.info(f"✓ Transformed {len(df)} records")
     logger.info(f"Saved to: {output_file}")
+    logger.info("   Note: Transformation happens locally on Airflow worker (minimal I/O)")
     
     return {
         'status': 'transformed',
@@ -184,16 +192,18 @@ def load_to_data_lake(**context):
     target_container = "sg-analytics-bronze"
     target_path = f"incremental/{source_table}/date={execution_date}/data_{context['ts_nodash']}.parquet"
     
-    # Upload file
+    # Upload file directly
     container = client.get_container_client(target_container)
     blob = container.get_blob_client(target_path)
     
+    # Upload directly from file (streaming upload - efficient)
     with open(output_file, 'rb') as data:
         blob.upload_blob(data, overwrite=True)
     
     file_size = os.path.getsize(output_file)
     
     logger.info(f"✓ Uploaded {file_size:,} bytes to {target_container}/{target_path}")
+    logger.info("   Note: Direct streaming upload (minimal Airflow memory usage)")
     
     # Clean up temp files
     os.remove(output_file)
