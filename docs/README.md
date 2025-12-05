@@ -1,104 +1,115 @@
-# Airflow on AKS - Documentation
+# Airflow POC Documentation
 
-Complete documentation for deploying and managing Apache Airflow 3.0.2 on Azure Kubernetes Service.
+Complete guide for deploying and testing Apache Airflow 3.0.2 on Azure Kubernetes Service.
 
-## 📖 Getting Started
+## 📖 Start Here
 
-**New to Airflow on AKS?** Start here:
+- **[../README.md](../README.md)** - Project overview and quick start
+- **[QUICKSTART.md](QUICKSTART.md)** - Fast-track 5-minute deployment
+- **[AKS_DEPLOYMENT_GUIDE.md](AKS_DEPLOYMENT_GUIDE.md)** - Detailed deployment instructions
 
-1. **[QUICKSTART.md](QUICKSTART.md)** - Deploy Airflow in 15 minutes
-2. **[AKS_DEPLOYMENT_GUIDE.md](AKS_DEPLOYMENT_GUIDE.md)** - Detailed deployment guide
+## 🔗 Connections & Integration
 
-## 🔗 Connection Setup Guides
+- **[CONNECTIONS_SETUP.md](CONNECTIONS_SETUP.md)** - Configure all 4 connection types:
+  - Azure Blob Storage
+  - Databricks
+  - Power BI
+  - On-Premises SQL Server
 
-Configure Airflow connections to enterprise systems:
+## 🏗️ Project Structure
 
-- **[AZURE_CONNECTIONS_SETUP.md](AZURE_CONNECTIONS_SETUP.md)** - Azure Blob Storage, Data Lake, Key Vault
-- **[DATABRICKS_CONNECTION_SETUP.md](DATABRICKS_CONNECTION_SETUP.md)** - Databricks jobs, notebooks, SQL
-- **[POWERBI_CONNECTION_SETUP.md](POWERBI_CONNECTION_SETUP.md)** - PowerBI dataset refresh
-- **[ONPREM_SQLSERVER_SETUP.md](ONPREM_SQLSERVER_SETUP.md)** - On-premises SQL Server connectivity
+```
+Airflow_POC/
+├── dags/                 - 4 focused POC DAGs
+│   ├── azure/           - Azure Blob Storage POC
+│   ├── databricks/      - Databricks integration POC
+│   ├── powerbi/         - Power BI refresh POC
+│   └── onprem/          - On-Prem SQL Server POC
+├── kubernetes/          - Helm deployment config
+├── monitoring/          - Airflow monitoring guide
+├── docs/                - This documentation
+└── archive/             - Previous implementations
+```
 
-## 📊 Monitoring & Operations
+## 🎯 POC DAGs
 
-- **[GRAFANA_SETUP_GUIDE.md](GRAFANA_SETUP_GUIDE.md)** - Metrics visualization and alerting
+The POC includes 4 focused test DAGs with server-side operations:
 
-## 🗂️ Document Index
+### 1. Azure ETL POC (`azure_etl_poc`)
+- Extract data from Azure Blob Storage
+- Process locally in Airflow
+- Load results back to Azure Blob
+- **Connection needed:** `azure_blob_default`
 
-### Deployment
-- **QUICKSTART.md** - Fast deployment guide
-- **AKS_DEPLOYMENT_GUIDE.md** - Comprehensive AKS setup
+### 2. Databricks ETL POC (`databricks_etl_poc`)
+- Verify Databricks connection
+- Submit notebook transformation job
+- Load results to Delta Lake
+- **Connection needed:** `databricks_default`
 
-### Connections
-- **AZURE_CONNECTIONS_SETUP.md** - Azure services
-- **DATABRICKS_CONNECTION_SETUP.md** - Databricks platform
-- **POWERBI_CONNECTION_SETUP.md** - PowerBI integration
-- **ONPREM_SQLSERVER_SETUP.md** - SQL Server connections
+### 3. Power BI Refresh POC (`powerbi_refresh_poc`)
+- Authenticate with Azure
+- Trigger Power BI dataset refresh
+- Monitor refresh status
+- Validate data
+- **Connection needed:** `azure_default`
 
-### Monitoring
-- **GRAFANA_SETUP_GUIDE.md** - Observability setup
+### 4. On-Prem SQL Server ETL POC (`onprem_sqlserver_etl_poc`)
+- Connect to on-premises SQL Server
+- Extract source data
+- Execute server-side transformation (stored procedure)
+- Load to target table
+- Validate data quality
+- **Connection needed:** `onprem_mssql`
 
-## 🎯 Common Tasks
+## 🚀 Deployment Steps
 
-### Deploy Airflow
-See [QUICKSTART.md](QUICKSTART.md) for step-by-step instructions.
+1. **Setup AKS cluster** → See [AKS_DEPLOYMENT_GUIDE.md](AKS_DEPLOYMENT_GUIDE.md)
+2. **Deploy Airflow** → See [QUICKSTART.md](QUICKSTART.md)
+3. **Configure connections** → See [CONNECTIONS_SETUP.md](CONNECTIONS_SETUP.md)
+4. **Test POC DAGs** → Trigger from Airflow UI at `http://localhost:8080`
 
-### Add Azure Blob Connection
-Follow [AZURE_CONNECTIONS_SETUP.md](AZURE_CONNECTIONS_SETUP.md#azure-blob-storage).
+## 📊 Monitoring
 
-### Run Databricks Jobs
-Configure connection in [DATABRICKS_CONNECTION_SETUP.md](DATABRICKS_CONNECTION_SETUP.md).
+View Airflow logs and status:
 
-### Set Up Monitoring
-Install Grafana using [GRAFANA_SETUP_GUIDE.md](GRAFANA_SETUP_GUIDE.md).
-
-## 📚 Additional Resources
-
-- [Apache Airflow Documentation](https://airflow.apache.org/docs/apache-airflow/stable/)
-- [Helm Chart Documentation](https://airflow.apache.org/docs/helm-chart/stable/)
-- [Azure Kubernetes Service Docs](https://docs.microsoft.com/en-us/azure/aks/)
-
-## 💡 Quick Reference
-
-### Useful Commands
 ```powershell
-# View pods
+# Port-forward to UI
+kubectl port-forward -n airflow svc/airflow-webserver 8080:8080
+
+# View scheduler logs
+kubectl logs -n airflow deployment/airflow-scheduler -f
+
+# View worker logs
+kubectl logs -n airflow deployment/airflow-worker -f
+```
+
+See [../monitoring/README.md](../monitoring/README.md) for more details.
+
+## 🔧 Troubleshooting
+
+Check if all pods are running:
+```powershell
 kubectl get pods -n airflow
-
-# Check logs
-kubectl logs -n airflow <pod-name> -c <container>
-
-# Access UI
-kubectl get svc airflow-api-server -n airflow
-
-# Scale workers
-helm upgrade airflow apache-airflow/airflow -n airflow `
-  -f ../kubernetes/values.yaml `
-  --set workers.replicas=3
 ```
 
-### Configuration Files
-- `../kubernetes/values.yaml` - Main Helm configuration
-- `../kubernetes/postgres.yaml` - Database deployment
-- `../dags/` - DAG definitions
-
-## 🔍 Troubleshooting
-
-**DAGs not showing?**
+View pod events and errors:
 ```powershell
-kubectl logs -n airflow -l component=dag-processor -c dag-processor
+kubectl describe pod -n airflow <pod-name>
 ```
 
-**Database connection issues?**
-```powershell
-kubectl logs -n airflow <postgres-pod>
-kubectl exec -it -n airflow <postgres-pod> -- psql -U airflow
-```
+## 📝 Notes
 
-**Pod not starting?**
-```powershell
-kubectl describe pod <pod-name> -n airflow
-```
+- **Airflow Version:** 3.0.2
+- **Executor:** CeleryExecutor with Redis broker
+- **Database:** PostgreSQL (external service)
+- **Python:** 3.11
+- **Kubernetes:** 1.24+
 
----
+## 🔗 External Resources
 
-**Need help?** All guides include troubleshooting sections. Start with [QUICKSTART.md](QUICKSTART.md) for the basics.
+- [Apache Airflow Documentation](https://airflow.apache.org/docs/)
+- [Airflow Helm Chart](https://airflow.apache.org/docs/helm-chart/stable/)
+- [Azure Kubernetes Service](https://learn.microsoft.com/en-us/azure/aks/)
+- [Databricks API Reference](https://docs.databricks.com/api/)
+- [SQL Server ODBC Driver](https://learn.microsoft.com/en-us/sql/connect/odbc/download-odbc-driver-for-sql-server)
