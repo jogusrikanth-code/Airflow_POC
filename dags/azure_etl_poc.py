@@ -54,7 +54,12 @@ with DAG(
         container_client = client.get_container_client(CONTAINER)
         
         # List blobs and get the first actual file
-        all_blobs = list(container_client.list_blobs(name_starts_with=SOURCE_FOLDER, max_results=5))
+        blob_list = container_client.list_blobs(name_starts_with=SOURCE_FOLDER, results_per_page=5)
+        all_blobs = []
+        for i, blob in enumerate(blob_list):
+            if i >= 5:
+                break
+            all_blobs.append(blob)
         
         # Find first non-folder blob
         source_blob = None
