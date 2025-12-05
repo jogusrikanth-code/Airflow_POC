@@ -217,31 +217,26 @@ with DAG(
     connect = PythonOperator(
         task_id='connect_to_server',
         python_callable=connect_to_sqlserver,
-        provide_context=True,
     )
     
     extract = PythonOperator(
         task_id='extract_data',
         python_callable=extract_source_data,
-        provide_context=True,
     )
     
     transform = PythonOperator(
         task_id='transform_data',
         python_callable=execute_server_transformation,
-        provide_context=True,
     )
     
     load = PythonOperator(
         task_id='load_data',
         python_callable=load_to_target,
-        provide_context=True,
     )
     
     validate = PythonOperator(
         task_id='validate_quality',
         python_callable=validate_data_quality,
-        provide_context=True,
     )
     
     # Pipeline

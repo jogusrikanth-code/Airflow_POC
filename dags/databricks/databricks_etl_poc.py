@@ -92,19 +92,16 @@ with DAG(
     check_connection = PythonOperator(
         task_id='check_connection',
         python_callable=check_databricks_connection,
-        provide_context=True,
     )
     
     submit_job = PythonOperator(
         task_id='submit_transformation_job',
         python_callable=submit_transformation_job,
-        provide_context=True,
     )
     
     load = PythonOperator(
         task_id='load_to_delta',
         python_callable=load_to_delta_lake,
-        provide_context=True,
     )
     
     # Pipeline

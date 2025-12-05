@@ -22,8 +22,8 @@ default_args = {
 with DAG(
     'databricks_etl_poc',
     default_args=default_args,
-    description='Databricks ETL POC with server-side transformation',
-    schedule_interval=None,
+    description='Databricks integration POC with server-side notebook execution',
+    schedule=None,
     start_date=datetime(2025, 1, 1),
     catchup=False,
     tags=['databricks', 'poc', 'etl'],
@@ -92,19 +92,16 @@ with DAG(
     check_connection = PythonOperator(
         task_id='check_connection',
         python_callable=check_databricks_connection,
-        provide_context=True,
     )
     
     submit_job = PythonOperator(
         task_id='submit_transformation_job',
         python_callable=submit_transformation_job,
-        provide_context=True,
     )
     
     load = PythonOperator(
         task_id='load_to_delta',
         python_callable=load_to_delta_lake,
-        provide_context=True,
     )
     
     # Pipeline

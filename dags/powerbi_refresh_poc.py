@@ -22,7 +22,7 @@ with DAG(
     'powerbi_refresh_poc',
     default_args=default_args,
     description='PowerBI Dataset Refresh POC with server-side operations',
-    schedule_interval=None,
+    schedule=None,
     start_date=datetime(2025, 1, 1),
     catchup=False,
     tags=['powerbi', 'poc', 'refresh'],
@@ -116,25 +116,21 @@ with DAG(
     authenticate = PythonOperator(
         task_id='authenticate_powerbi',
         python_callable=authenticate_powerbi,
-        provide_context=True,
     )
     
     trigger = PythonOperator(
         task_id='trigger_refresh',
         python_callable=trigger_dataset_refresh,
-        provide_context=True,
     )
     
     monitor = PythonOperator(
         task_id='monitor_refresh',
         python_callable=monitor_refresh,
-        provide_context=True,
     )
     
     validate = PythonOperator(
         task_id='post_refresh_validation',
         python_callable=post_refresh_validation,
-        provide_context=True,
     )
     
     # Pipeline
