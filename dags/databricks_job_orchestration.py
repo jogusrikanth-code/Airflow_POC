@@ -1,54 +1,50 @@
 """
-Databricks Job Orchestration Pipeline
-======================================
-Uses DatabricksRunNowOperator to trigger existing jobs.
-Perfect for orchestrating pre-configured Databricks jobs.
+Trigger Existing Databricks Jobs
+=================================
+Triggers 3 pre-configured jobs in Databricks.
 
 Connection: databricks_default
+Schedule: Daily at 6 AM
+
+Setup Required:
+1. Create jobs in Databricks
+2. Update job_id values below with your actual job IDs
+3. Use 'databricks_list_workflows' DAG to find job IDs
 """
 from airflow import DAG
 from airflow.providers.databricks.operators.databricks import DatabricksRunNowOperator
-from datetime import datetime, timedelta
+from datetime import datetime
 
-default_args = {
-    'owner': 'airflow',
-    'retries': 2,
-    'retry_delay': timedelta(minutes=5),
-}
-
+# DAG Definition
 with DAG(
-    'databricks_job_orchestration',
-    default_args=default_args,
-    description='Orchestrate existing Databricks jobs using native operators',
-    schedule='0 6 * * *',  # Run daily at 6 AM
+    dag_id='databricks_job_orchestration',
+    description='Trigger 3 Databricks jobs in sequence',
+    schedule='0 6 * * *',  # Daily at 6 AM UTC
     start_date=datetime(2025, 1, 1),
     catchup=False,
-    tags=['databricks', 'job-orchestration', 'production'],
+    tags=['databricks', 'jobs'],
 ) as dag:
     
-    # Job 1: Data ingestion job
-    run_ingest_job = DatabricksRunNowOperator(
-        task_id='run_data_ingestion_job',
+    # Job 1: Ingest data
+    job1 = DatabricksRunNowOperator(
+        task_id='ingest_data',
         databricks_conn_id='databricks_default',
-        job_id=123,  # Replace with your Databricks job ID
-        polling_period_seconds=10,
+        job_id=123,  # UPDATE: Replace with your job ID
     )
     
-    # Job 2: Data processing job
-    run_process_job = DatabricksRunNowOperator(
-        task_id='run_data_processing_job',
+    # Job 2: Process data
+    job2 = DatabricksRunNowOperator(
+        task_id='process_data',
         databricks_conn_id='databricks_default',
-        job_id=124,  # Replace with your Databricks job ID
-        polling_period_seconds=10,
+        job_id=124,  # UPDATE: Replace with your job ID
     )
     
-    # Job 3: Data quality check
-    run_quality_job = DatabricksRunNowOperator(
-        task_id='run_quality_check_job',
+    # Job 3: Quality checks
+    job3 = DatabricksRunNowOperator(
+        task_id='quality_check',
         databricks_conn_id='databricks_default',
-        job_id=125,  # Replace with your Databricks job ID
-        polling_period_seconds=10,
+        job_id=125,  # UPDATE: Replace with your job ID
     )
     
-    # Define dependencies
-    run_ingest_job >> run_process_job >> run_quality_job
+    # Flow: Ingest → Process → Quality Check
+    job1 >> job2 >> job3

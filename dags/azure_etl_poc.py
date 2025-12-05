@@ -1,73 +1,57 @@
 """
-Azure Blob Storage File Copy POC
-==================================
-Copy a single test file from seasonal_buy to Airflow folder.
-Uses server-side copy (no data transfer through Airflow).
+Copy Files from Azure Blob Storage
+===================================
+Copies files between folders in Azure Blob Storage.
 
-Storage: sgbilakehousestoragedev
+Connection: azure_blob_default
 Container: sg-analytics-raw
 Source: seasonal_buy/2025-10-12/
 Target: Airflow/test/
 
-Connection: azure_blob_default
-
-Note: Run test_azure_connection DAG first to verify connection.
+Setup Required:
+1. Configure 'azure_blob_default' connection in Airflow UI
+2. Update SOURCE_FOLDER and TARGET_FOLDER if needed
 """
 from airflow import DAG
 from airflow.operators.python import PythonOperator
-from datetime import datetime, timedelta
+from datetime import datetime
 
-default_args = {
-    'owner': 'airflow',
-    'retries': 1,
-    'retry_delay': timedelta(minutes=2),
-}
-
+# Configuration
 CONTAINER = 'sg-analytics-raw'
-SOURCE_FOLDER = 'seasonal_buy/2025-10-12'
-TARGET_FOLDER = 'Airflow/test'
+SOURCE_FOLDER = 'seasonal_buy/2025-10-12'  # UPDATE if needed
+TARGET_FOLDER = 'Airflow/test'            # UPDATE if needed
 
+# DAG Definition
 with DAG(
-    'azure_etl_poc',
-    default_args=default_args,
-    description='Copy one test file from seasonal_buy to Airflow folder',
-    schedule=None,
+    dag_id='azure_etl_poc',
+    description='Copy files between Azure Blob folders',
+    schedule=None,  # Run manually
     start_date=datetime(2025, 1, 1),
     catchup=False,
-    tags=['azure', 'poc', 'file-copy'],
+    tags=['azure', 'file-copy'],
 ) as dag:
     
     def copy_all_files(**context):
-        """Copy all files from source folder to target folder"""
+        """Copy all files from source to target folder"""
         from azure.storage.blob import BlobServiceClient
         from airflow.hooks.base import BaseHook
         
-        print("=" * 60)
-        print("Azure Blob Copy - Multiple Files")
-        print("=" * 60)
-        
-        # Get connection
+        # Step 1: Connect to Azure
         conn = BaseHook.get_connection('azure_blob_default')
         conn_str = f"DefaultEndpointsProtocol=https;AccountName={conn.host};AccountKey={conn.password};EndpointSuffix=core.windows.net"
-        
         client = BlobServiceClient.from_connection_string(conn_str)
-        container_client = client.get_container_client(CONTAINER)
+        container = client.get_container_client(CONTAINER)
         
-        # List all blobs in source folder
-        print(f"\n📁 Source folder: {SOURCE_FOLDER}")
-        blob_list = container_client.list_blobs(name_starts_with=SOURCE_FOLDER)
+        # Step 2: List files in source folder
+        print(f"\nSource: {SOURCE_FOLDER}")
+        blobs = [b for b in container.list_blobs(name_starts_with=SOURCE_FOLDER) 
+                 if not b.name.endswith('/') and b.size > 0]
         
-        # Get all non-folder blobs
-        source_blobs = []
-        for blob in blob_list:
-            if not blob.name.endswith('/') and blob.size > 0:
-                source_blobs.append(blob)
-        
-        if not source_blobs:
-            print("❌ No files found to copy")
+        if not blobs:
+            print("No files found")
             return {'status': 'no_files', 'copied': 0}
         
-        print(f"📊 Found {len(source_blobs)} file(s) to copy\n")
+        print(f"Found {len(blobs)} file(s)\n")
         
         # Copy all files
         copied_count = 0
