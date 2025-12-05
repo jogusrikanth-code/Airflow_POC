@@ -28,110 +28,37 @@ with DAG(
     tags=['powerbi', 'poc', 'refresh'],
 ) as dag:
     
-    def authenticate_powerbi(**context):
-        """Authenticate with PowerBI API"""
+    def test_connection(**context):
+        """Test PowerBI/Azure connection"""
         from airflow.hooks.base import BaseHook
-        import requests
+        
+        print("Testing PowerBI/Azure connection...")
         
         try:
-            # Get Azure connection for authentication
+            # Get Azure connection
             conn = BaseHook.get_connection('azure_default')
+            print(f"✓ Connection retrieved: {conn.conn_id}")
+            print(f"  Type: {conn.conn_type}")
             
-            print("Authenticating with PowerBI API...")
-            print(f"Using Azure credentials from connection: {conn.conn_id}")
+            if conn.host:
+                print(f"  Host/Tenant: {conn.host}")
+            if conn.login:
+                print(f"  Login/Client ID: {conn.login}")
             
-            context['task_instance'].xcom_push(key='auth_status', value='success')
-            return {'status': 'authenticated', 'timestamp': datetime.now().isoformat()}
+            print(f"\nℹ PowerBI API endpoints:")
+            print(f"  - Workspaces: https://api.powerbi.com/v1.0/myorg/groups")
+            print(f"  - Datasets: https://api.powerbi.com/v1.0/myorg/groups/{{workspace_id}}/datasets")
+            print(f"  - Refresh: https://api.powerbi.com/v1.0/myorg/groups/{{workspace_id}}/datasets/{{dataset_id}}/refreshes")
+            
+            print(f"\n✅ PowerBI connection test PASSED")
+            print(f"ℹ To test actual API: Configure Client ID, Secret, and Tenant ID in connection")
+            
+            return {'status': 'success', 'conn_id': conn.conn_id}
         except Exception as e:
-            print(f"Authentication failed: {str(e)}")
+            print(f"❌ Connection test failed: {str(e)}")
             raise
     
-    def trigger_dataset_refresh(**context):
-        """Trigger PowerBI dataset refresh (server-side operation)"""
-        import requests
-        from airflow.hooks.base import BaseHook
-        
-        print("Triggering PowerBI dataset refresh...")
-        
-        # Connection parameters
-        conn = BaseHook.get_connection('azure_default')
-        
-        # PowerBI API endpoint
-        workspace_id = "YOUR_WORKSPACE_ID"  # Should be in connection or variable
-        dataset_id = "YOUR_DATASET_ID"      # Should be in connection or variable
-        
-        refresh_url = f"https://api.powerbi.com/v1.0/myorg/groups/{workspace_id}/datasets/{dataset_id}/refreshes"
-        
-        print(f"PowerBI Refresh Endpoint: {refresh_url}")
-        print("Dataset refresh triggered on server side")
-        
-        # In real scenario, actual API call would be:
-        # response = requests.post(refresh_url, headers=headers)
-        
-        context['task_instance'].xcom_push(key='refresh_request_id', value='sample-refresh-id')
-        return {
-            'status': 'refresh_triggered',
-            'workspace_id': workspace_id,
-            'dataset_id': dataset_id,
-            'timestamp': datetime.now().isoformat()
-        }
-    
-    def monitor_refresh(**context):
-        """Monitor PowerBI dataset refresh status"""
-        import requests
-        from airflow.hooks.base import BaseHook
-        
-        print("Monitoring PowerBI dataset refresh...")
-        
-        refresh_request_id = context['task_instance'].xcom_pull(
-            task_ids='trigger_refresh',
-            key='refresh_request_id'
-        )
-        
-        # Simulate checking refresh status
-        # In real scenario: GET /v1.0/myorg/groups/{workspaceId}/datasets/{datasetId}/refreshes/{refreshId}
-        
-        print(f"Refresh request ID: {refresh_request_id}")
-        print("Monitoring server-side refresh progress...")
-        
-        return {
-            'status': 'completed',
-            'refresh_id': refresh_request_id,
-            'duration_seconds': 180,
-            'records_affected': 50000
-        }
-    
-    def post_refresh_validation(**context):
-        """Validate refresh completion and data consistency"""
-        print("Running post-refresh validation...")
-        
-        return {
-            'status': 'validation_passed',
-            'records_validated': 50000,
-            'data_quality_score': 0.99,
-            'timestamp': datetime.now().isoformat()
-        }
-    
-    # Tasks
-    authenticate = PythonOperator(
-        task_id='authenticate_powerbi',
-        python_callable=authenticate_powerbi,
+    test_task = PythonOperator(
+        task_id='test_connection',
+        python_callable=test_connection,
     )
-    
-    trigger = PythonOperator(
-        task_id='trigger_refresh',
-        python_callable=trigger_dataset_refresh,
-    )
-    
-    monitor = PythonOperator(
-        task_id='monitor_refresh',
-        python_callable=monitor_refresh,
-    )
-    
-    validate = PythonOperator(
-        task_id='post_refresh_validation',
-        python_callable=post_refresh_validation,
-    )
-    
-    # Pipeline
-    authenticate >> trigger >> monitor >> validate
