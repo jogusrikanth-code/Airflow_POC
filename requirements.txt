@@ -1,0 +1,41 @@
+# Airflow POC - Python Requirements for AKS Deployment
+# This file is informational. Actual packages are installed via Helm extraPipPackages in kubernetes/values.yaml
+# To use locally: pip install -r requirements.txt
+
+# Core Airflow (Running on AKS)
+apache-airflow==3.0.2
+
+# === AZURE INTEGRATION ===
+apache-airflow-providers-microsoft-azure>=12.4.0
+azure-storage-blob>=12.23.0
+azure-identity>=1.19.0
+azure-mgmt-resource>=23.2.0
+
+# === DATABRICKS INTEGRATION ===
+apache-airflow-providers-databricks>=7.8.0
+databricks-sql-connector>=3.6.0
+
+# === POWERBI INTEGRATION (via MSSQL) ===
+apache-airflow-providers-microsoft-mssql>=3.8.0
+
+# === ON-PREMISES SQL SERVER ===
+pyodbc>=4.0.0
+apache-airflow-providers-odbc>=4.1.0
+
+# === DATA PROCESSING ===
+pandas>=1.5.0
+openpyxl>=3.0.0
+
+# === HTTP/API ===
+apache-airflow-providers-http>=5.3.0
+requests>=2.32.0
+
+# === DATABASE PROVIDERS ===
+apache-airflow-providers-postgres>=5.14.0
+apache-airflow-providers-common-sql>=1.27.0
+
+# === OPTIONAL: For local development ===
+# pytest>=7.0.0
+# black>=22.0.0
+# flake8>=4.0.0
+# pylint>=2.15.0
