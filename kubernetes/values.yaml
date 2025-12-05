@@ -1,55 +1,71 @@
-# Airflow Helm Chart Values
+# Airflow Helm Chart Values for Azure Kubernetes Service (AKS)
 # Reference: https://airflow.apache.org/docs/helm-chart/stable/index.html
+# Deploy to AKS with: helm install airflow apache-airflow/airflow -n airflow --create-namespace -f kubernetes/values.yaml
 
 # Namespace
 namespace: airflow
 
-# Default Airflow image
-defaultAirflowRepository: apache/airflow
-defaultAirflowTag: "2.9.3"
+# Database configuration (external PostgreSQL)
+data:
+  metadataConnection:
+    user: airflow
+    pass: airflow
+    protocol: postgresql
+    host: postgres
+    port: 5432
+    db: airflow
+    sslmode: disable
+  # Use the same database for result backend
+  resultBackendConnection:
+    user: airflow
+    pass: airflow
+    protocol: postgresql
+    host: postgres
+    port: 5432
+    db: airflow
+    sslmode: disable
 
-# Extra pip packages to install
+# Airflow Version - Using stable Airflow 2.9.3
+airflowVersion: "2.9.3"
+defaultAirflowRepository: apache/airflow
+defaultAirflowTag: "2.9.3-python3.11"
+
+# Extra pip packages to install on all pods
+# These will be automatically installed during pod startup
 extraPipPackages:
-  - "apache-airflow-providers-databricks"
-  - "apache-airflow-providers-microsoft-azure"
-  - "apache-airflow-providers-postgres"
-  - "apache-airflow-providers-mysql"
-  - "apache-airflow-providers-odbc"
-  - "apache-airflow-providers-microsoft-mssql"
-  - "apache-airflow-providers-http"
-  - "apache-airflow-providers-ftp"
-  - "apache-airflow-providers-sftp"
-  - "databricks-sql-connector"
-  - "azure-storage-blob"
-  - "azure-identity"
-  - "pandas"
-  - "pyarrow"
-  - "openpyxl"
-  - "pyodbc"
-  - "mysql-connector-python"
+  # Azure Integration
+  - "apache-airflow-providers-microsoft-azure>=5.0.0"
+  - "azure-storage-blob>=12.0.0"
+  - "azure-identity>=1.0.0"
+  - "azure-mgmt-resource>=23.0.0"
+  
+  # Databricks Integration
+  - "apache-airflow-providers-databricks>=7.8.0"
+  - "databricks-sql-connector>=0.4.0"
+  
+  # PowerBI Integration (via Microsoft providers)
+  - "apache-airflow-providers-microsoft-mssql>=3.8.0"
+  
+  # On-Premises SQL Server
+  - "pyodbc>=4.0.0"
+  - "apache-airflow-providers-odbc>=4.1.0"
+  
+  # Other useful packages
+  - "apache-airflow-providers-postgres>=5.0.0"
+  - "apache-airflow-providers-http>=4.0.0"
+  - "pandas>=1.5.0"
+  - "openpyxl>=3.0.0"
+  - "requests>=2.28.0"
 
 # PostgreSQL Configuration
 postgresql:
   enabled: false  # Using external PostgreSQL
 
-externalDatabase:
-  type: postgresql
-  host: postgres
-  port: 5432
-  database: airflow
-  user: airflow
-  passwordSecret: postgres-secret
-  passwordSecretKey: password
-
 # Redis Configuration
 redis:
   enabled: true
-  architecture: standalone
-  auth:
+  persistence:
     enabled: false
-  master:
-    persistence:
-      enabled: false
 
 # Executor Configuration
 executor: CeleryExecutor
@@ -76,7 +92,9 @@ webserver:
   replicas: 1
   service:
     type: LoadBalancer
-    port: 8080
+    ports:
+      - name: airflow-ui
+        port: 8080
   resources:
     requests:
       cpu: "500m"
@@ -112,14 +130,15 @@ dags:
   persistence:
     enabled: true
     size: 1Gi
-    accessMode: ReadWriteOnce
+    accessMode: ReadWriteMany
+    storageClassName: azurefile-csi
 
 # Logs Configuration
 logs:
   persistence:
     enabled: true
     size: 5Gi
-    accessMode: ReadWriteOnce
+    storageClassName: azurefile-csi
 
 # Security Context
 securityContext:

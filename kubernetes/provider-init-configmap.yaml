@@ -7,10 +7,50 @@ data:
   install-providers.sh: |
     #!/bin/bash
     set -e
-    echo "Installing additional Airflow providers to /opt/providers..."
-    pip install --no-cache-dir --target=/opt/providers apache-airflow-providers-databricks==7.8.0
-    echo "Providers installed successfully!"
-  init-env.sh: |
+    echo "================================"
+    echo "Installing Airflow Providers..."
+    echo "================================"
+    
+    # Azure Providers
+    echo "Installing Azure provider..."
+    pip install --no-cache-dir \
+      apache-airflow-providers-microsoft-azure>=5.0.0 \
+      azure-storage-blob>=12.0.0 \
+      azure-identity>=1.0.0
+    
+    # Databricks Provider
+    echo "Installing Databricks provider..."
+    pip install --no-cache-dir \
+      apache-airflow-providers-databricks>=7.8.0 \
+      databricks-sql-connector>=0.4.0
+    
+    # MSSQL/PowerBI Provider
+    echo "Installing MSSQL provider for PowerBI..."
+    pip install --no-cache-dir \
+      apache-airflow-providers-microsoft-mssql>=3.8.0
+    
+    # On-Premises SQL Server Support
+    echo "Installing on-premises SQL Server support..."
+    pip install --no-cache-dir \
+      pyodbc>=4.0.0 \
+      apache-airflow-providers-odbc>=4.1.0
+    
+    echo "✅ All providers installed successfully!"
+    echo "Available providers installed:"
+    pip list | grep -i "apache-airflow-providers"
+    
+  verify-providers.sh: |
     #!/bin/bash
-    # Add providers to Python path
-    export PYTHONPATH="/opt/providers:$PYTHONPATH"
+    echo "Verifying provider installation..."
+    echo ""
+    echo "Checking for Databricks provider:"
+    pip list | grep databricks || echo "⚠️ Databricks provider not found"
+    echo ""
+    echo "Checking for Azure provider:"
+    pip list | grep "azure" || echo "⚠️ Azure provider not found"
+    echo ""
+    echo "Checking for MSSQL provider:"
+    pip list | grep "mssql" || echo "⚠️ MSSQL provider not found"
+    echo ""
+    echo "Checking for ODBC provider:"
+    pip list | grep "odbc" || echo "⚠️ ODBC provider not found"

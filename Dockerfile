@@ -1,28 +1,19 @@
-# Custom Airflow image with Databricks provider
-FROM apache/airflow:3.0.2-python3.11
+# NOTE: This Dockerfile is deprecated for this AKS deployment.
+# 
+# For Azure Kubernetes Service (AKS), use the Helm chart deployment instead.
+# The Helm chart automatically handles provider installation.
+#
+# To deploy to AKS:
+# 1. See docs/AKS_DEPLOYMENT_GUIDE.md
+# 2. Use: helm install airflow apache-airflow/airflow -n airflow -f kubernetes/values.yaml
+#
+# This Dockerfile is kept for reference only and should not be used.
+# All required providers are configured in kubernetes/values.yaml
 
-# Switch to root to install packages
-USER root
+FROM apache/airflow:2.9.3-python3.11
 
-# Install any additional system packages if needed
-# RUN apt-get update && apt-get install -y --no-install-recommends \
-#     <your-package> \
-#     && apt-get clean \
-#     && rm -rf /var/lib/apt/lists/*
+# Providers are installed via Helm extraPipPackages - no Docker build needed
 
-# Switch back to airflow user
-USER airflow
-
-# Install Databricks provider and any other Python packages
-RUN pip install --no-cache-dir \
-    apache-airflow-providers-databricks==7.8.0
-
-# Optional: Install other providers you might need
-# RUN pip install --no-cache-dir \
-#     apache-airflow-providers-microsoft-mssql \
-#     apache-airflow-providers-microsoft-azure
-
-# Metadata
 LABEL maintainer="Srikanth Jogu"
-LABEL description="Apache Airflow 3.0.2 with Databricks provider"
-LABEL version="3.0.2-databricks"
+LABEL description="DEPRECATED - Use Helm deployment instead"
+LABEL version="2.9.3"

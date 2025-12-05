@@ -1,52 +1,246 @@
-# Airflow POC
+# Airflow POC - Azure Kubernetes Service Deployment
 
-Welcome to the Airflow Proof of Concept repository! This project demonstrates running Apache Airflow on Kubernetes with enterprise integration patterns. 🚀
+Welcome to the Airflow Proof of Concept repository! This project demonstrates running Apache Airflow on **Azure Kubernetes Service (AKS)** with enterprise integrations.
 
-## 🚀 Quick Start
+## 🚀 Quick Start (5 minutes)
 
-Deploy Airflow to Kubernetes (Docker Desktop):
+Deploy Airflow to your AKS cluster:
 
 ```powershell
-# Deploy all Airflow components
-kubectl apply -f kubernetes/airflow.yaml
+# 1. Connect to AKS
+az aks get-credentials --resource-group <YOUR_RESOURCE_GROUP> --name <YOUR_CLUSTER_NAME>
 
-# Check deployment status
-kubectl get pods -n airflow
+# 2. Add Helm repository
+helm repo add apache-airflow https://airflow.apache.org
+helm repo update
 
-# Access the Airflow UI at http://localhost:8080
-kubectl port-forward svc/airflow-webserver 8080:8080 -n airflow
+# 3. Deploy Airflow
+helm install airflow apache-airflow/airflow `
+  --namespace airflow `
+  --create-namespace `
+  -f kubernetes/values.yaml
+
+# 4. Get access details
+$AIRFLOW_IP = kubectl get svc airflow-webserver -n airflow -o jsonpath='{.status.loadBalancer.ingress[0].ip}'
+Write-Host "Airflow URL: http://$AIRFLOW_IP:8080"
 ```
 
-Create admin credentials and start building workflows! See [QUICKSTART.md](docs/QUICKSTART.md) for detailed setup.
+**See [QUICKSTART.md](docs/QUICKSTART.md) for detailed setup and configuration.**
 
 ## 📚 Documentation
 
-All guides are in the `docs/` folder, now organized by deployment type and topic. **Start here:** [docs/README.md](docs/README.md)
+### 🎯 Start Here
 
-**Quick Navigation:**
-- 🎓 **New to Airflow?** → [docs/learning/AIRFLOW_BASICS.md](docs/learning/AIRFLOW_BASICS.md)
-- ⚡ **Deploy on K8s** → [docs/deployment-guides/self-managed/QUICKSTART.md](docs/deployment-guides/self-managed/QUICKSTART.md)
-- ☁️ **Deploy on AKS** → [docs/deployment-guides/aks/AKS_AIRFLOW_DEPLOYMENT_GUIDE.md](docs/deployment-guides/aks/AKS_AIRFLOW_DEPLOYMENT_GUIDE.md)
-- 🌟 **Use Astronomer** → [docs/deployment-guides/astronomer/astronomer.md](docs/deployment-guides/astronomer/astronomer.md)
-- 🔧 **Setup Reference** → [docs/deployment-guides/self-managed/SETUP_SUMMARY.md](docs/deployment-guides/self-managed/SETUP_SUMMARY.md)
-- 🏗️ **Architecture** → [docs/learning/ARCHITECTURE.md](docs/learning/ARCHITECTURE.md)
-- 🏢 **Enterprise Deployment** → [docs/enterprise/ENTERPRISE_ARCHITECTURE.md](docs/enterprise/ENTERPRISE_ARCHITECTURE.md)
-- 🔗 **Integrations** → [docs/enterprise/ENTERPRISE_INTEGRATION.md](docs/enterprise/ENTERPRISE_INTEGRATION.md)
+- **[QUICKSTART.md](docs/QUICKSTART.md)** - Fast-track 5-minute setup guide
+- **[AKS_DEPLOYMENT_GUIDE.md](docs/AKS_DEPLOYMENT_GUIDE.md)** - Complete AKS deployment instructions
 
-## 💡 What's Included
+### 🔗 Connection Guides
 
-This POC demonstrates:
-- ✅ Kubernetes deployment with PostgreSQL + Redis
-- ✅ Multiple deployment options (Helm + git-sync or hostPath)
-- ✅ Enterprise connectors (Databricks, Power BI, Azure, On-Premises)
-- ✅ ETL pipeline examples with real data processing
-- ✅ Comprehensive documentation for learning and production deployment
+Configure connections to enterprise services:
+
+- **[AZURE_CONNECTIONS_SETUP.md](docs/AZURE_CONNECTIONS_SETUP.md)** - Azure Blob Storage, Data Lake, etc.
+- **[DATABRICKS_CONNECTION_SETUP.md](docs/DATABRICKS_CONNECTION_SETUP.md)** - Databricks jobs, notebooks, SQL
+- **[POWERBI_CONNECTION_SETUP.md](docs/POWERBI_CONNECTION_SETUP.md)** - PowerBI dataset refresh, reports
+- **[ONPREM_SQLSERVER_SETUP.md](docs/ONPREM_SQLSERVER_SETUP.md)** - On-premises SQL Server access
+
+### 📖 Additional Resources
+
+- **[docs/00_START_HERE.md](docs/00_START_HERE.md)** - Documentation index
+- **[docs/README.md](docs/README.md)** - Full documentation guide
+
+## 💼 Supported Integrations
+
+This setup includes pre-configured providers for:
+
+- ☁️ **Azure** - Blob Storage, Data Lake, Event Hubs, Synapse
+- 🧱 **Databricks** - Jobs, Notebooks, SQL warehouses
+- 📊 **PowerBI** - Dataset refresh, report management
+- 🗄️ **On-Premises SQL Server** - ODBC, MSSQL providers
+- 🐘 **PostgreSQL** - Data warehouse backend
+- 🔴 **Redis** - Celery broker for task execution
+
+## 📁 Project Structure
+
+```
+Airflow_POC/
+├── dags/                          # Your DAG files go here
+│   ├── simple_etl_pipeline.py
+│   ├── azure/                     # Azure-specific DAGs
+│   ├── databricks/                # Databricks-specific DAGs
+│   ├── powerbi/                   # PowerBI-specific DAGs
+│   └── onprem/                    # On-premises SQL DAGs
+├── kubernetes/                    # Kubernetes & Helm configuration
+│   ├── values.yaml               # Main Helm values (customize here)
+│   ├── airflow.yaml              # Raw K8s manifests
+│   └── provider-init-configmap.yaml
+├── docs/                         # Complete documentation
+│   ├── QUICKSTART.md             # Start here!
+│   ├── AKS_DEPLOYMENT_GUIDE.md
+│   ├── AZURE_CONNECTIONS_SETUP.md
+│   ├── DATABRICKS_CONNECTION_SETUP.md
+│   ├── POWERBI_CONNECTION_SETUP.md
+│   └── ONPREM_SQLSERVER_SETUP.md
+├── requirements.txt              # Python dependencies
+└── Dockerfile                    # (Deprecated - use Helm instead)
+```
+
+## 🔄 Common Workflows
+
+### 1. Deploying a New DAG
+
+1. Create your DAG file in `dags/` folder
+2. Airflow automatically picks it up (usually within 1-2 minutes)
+3. Enable it in the Airflow UI
+
+Example DAG:
+```python
+from airflow import DAG
+from airflow.operators.python import PythonOperator
+from datetime import datetime
+
+def hello_world():
+    print("Hello from Airflow on AKS!")
+
+with DAG('hello_world', start_date=datetime(2025, 1, 1)) as dag:
+    hello = PythonOperator(
+        task_id='hello',
+        python_callable=hello_world,
+    )
+```
+
+### 2. Adding a New Connection
+
+1. Go to Airflow UI → **Admin** → **Connections** → **Create**
+2. Fill in connection details (see connection guides above)
+3. Test the connection
+4. Use in your DAGs
+
+### 3. Scaling Workers
+
+For more parallel task execution:
+
+```powershell
+helm upgrade airflow apache-airflow/airflow `
+  --namespace airflow `
+  -f kubernetes/values.yaml `
+  --set workers.replicas=5
+```
+
+### 4. Updating Configuration
+
+Edit `kubernetes/values.yaml` and upgrade:
+
+```powershell
+helm upgrade airflow apache-airflow/airflow `
+  --namespace airflow `
+  -f kubernetes/values.yaml
+```
+
+## 🔍 Monitoring & Troubleshooting
+
+### Check Pod Status
+
+```powershell
+kubectl get pods -n airflow
+kubectl describe pod <pod-name> -n airflow
+```
+
+### View Logs
+
+```powershell
+# Scheduler logs
+kubectl logs -n airflow deployment/airflow-scheduler -f
+
+# Worker logs
+kubectl logs -n airflow pod/<worker-pod-name> -f
+```
+
+### Verify Providers
+
+```powershell
+# List installed providers
+kubectl exec -n airflow deployment/airflow-scheduler -- airflow providers list
+
+# Check specific provider
+kubectl exec -n airflow deployment/airflow-api-server -- pip list | Select-String "databricks"
+```
+
+### Test Connections
+
+```powershell
+kubectl exec -it -n airflow deployment/airflow-scheduler -- /bin/bash
+
+python3 << 'EOF'
+from airflow.hooks.base import BaseHook
+conn = BaseHook.get_connection('your_connection_id')
+print(f"Connection: {conn.conn_id} ({conn.conn_type})")
+EOF
+```
+
+## 🚀 What's Included
+
+✅ Pre-configured for Azure Kubernetes Service (AKS)  
+✅ Helm chart deployment (no Docker image building needed)  
+✅ All major providers pre-installed:
+- Apache Airflow Providers for Azure, Databricks, MSSQL, ODBC
+- Database connectors (pyodbc, psycopg2, etc.)
+- Data processing libraries (pandas, pyarrow, openpyxl)
+
+✅ CeleryExecutor for distributed task execution  
+✅ PostgreSQL backend database  
+✅ Redis broker for Celery  
+✅ Comprehensive documentation and examples  
 
 ## 📊 Example DAGs
 
-- **`demo_dag.py`** - Simple 2-task workflow for learning DAG basics
-- **`etl_example_dag.py`** - Full ETL pipeline (extract, transform, load) with sample CSV data
-- **`enterprise_integration_dag.py`** - Production-style integration: On-Premises → Azure → Databricks → Power BI
+Located in `dags/` folder:
+
+- **simple_etl_pipeline.py** - Basic extract, transform, load workflow
+- **azure/*** - Azure Blob Storage, Data Lake examples
+- **databricks/*** - Databricks job and notebook execution
+- **powerbi/*** - PowerBI dataset refresh automation
+- **onprem/*** - On-premises SQL Server integration
+
+## 💡 Tips
+
+- **Fernet Key:** Generated automatically on deployment for credential encryption
+- **DAG Load:** Airflow checks for new DAGs every minute
+- **Resource Limits:** Configured in `kubernetes/values.yaml`
+- **High Availability:** Scale replicas for production use
+- **Database:** External PostgreSQL recommended for production
+
+## 🔐 Security
+
+- Credentials stored in Airflow Connections (encrypted)
+- Consider Azure Key Vault for sensitive data
+- Network policies restrict pod communication
+- RBAC for Kubernetes access control
+
+## 📚 Learning Resources
+
+- [Apache Airflow Documentation](https://airflow.apache.org/docs/)
+- [Kubernetes Documentation](https://kubernetes.io/docs/)
+- [Azure Kubernetes Service Documentation](https://docs.microsoft.com/en-us/azure/aks/)
+- [Helm Chart Reference](https://airflow.apache.org/docs/helm-chart/stable/)
+
+## ⚠️ Important Notes
+
+- **No Docker Build Needed:** Use Helm chart for AKS deployment
+- **Custom Images Deprecated:** All providers configured in `kubernetes/values.yaml`
+- **DAG Changes:** No need to rebuild or redeploy - changes auto-load
+- **Secrets:** Use Airflow Connections for all credentials
+
+## 🎯 Next Steps
+
+1. **Quick Deploy:** Follow [QUICKSTART.md](docs/QUICKSTART.md)
+2. **Configure Connections:** See connection setup guides above
+3. **Create DAGs:** Add your workflows to `dags/` folder
+4. **Monitor:** Use Airflow UI and Kubernetes dashboard
+5. **Scale:** Adjust worker count based on workload
+
+## 📞 Help
+
+Detailed guides for each component are in the `docs/` folder. Start with [QUICKSTART.md](docs/QUICKSTART.md) and reference the specific connection guides as needed.
 
 ## 🗂️ Database Queries
 

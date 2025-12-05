@@ -20,7 +20,7 @@ metadata:
 data:
   POSTGRES_DB: airflow
   POSTGRES_USER: airflow
-  POSTGRES_INITDB_ARGS: "-c max_connections=200"
+  POSTGRES_INITDB_ARGS: ""
 
 ---
 # Secret for PostgreSQL credentials
@@ -95,9 +95,9 @@ spec:
         tier: database
     spec:
       securityContext:
-        fsGroup: 999
-        runAsNonRoot: true
-        runAsUser: 999
+        fsGroup: 0
+        runAsNonRoot: false
+        runAsUser: 0
       containers:
         - name: postgres
           image: postgres:15-alpine

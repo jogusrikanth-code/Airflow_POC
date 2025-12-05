@@ -1,24 +1,15 @@
-# Install Databricks Provider in Airflow Pods
-# This script installs apache-airflow-providers-databricks in running Airflow pods
-# Note: This is a temporary installation that will be lost when pods restart
+# DEPRECATED: This script is no longer needed for AKS deployment.
+#
+# For Azure Kubernetes Service, providers are installed automatically via:
+# - kubernetes/values.yaml (extraPipPackages)
+# - Helm deployment with helm install/upgrade
+#
+# This script was used for temporary pod installation and is kept for reference only.
+#
+# To deploy to AKS, see:
+# - docs/AKS_DEPLOYMENT_GUIDE.md
+# - Databricks setup: docs/DATABRICKS_CONNECTION_SETUP.md
 
-Write-Host "Installing Databricks Provider in Airflow pods..." -ForegroundColor Cyan
-
-# Get current pod names
-$apiServerPod = kubectl get pods -n airflow -l component=api-server -o jsonpath='{.items[0].metadata.name}'
-$schedulerPod = kubectl get pods -n airflow -l component=scheduler -o jsonpath='{.items[0].metadata.name}'
-$dagProcessorPod = kubectl get pods -n airflow -l component=dag-processor -o jsonpath='{.items[0].metadata.name}'
-
-Write-Host "`nInstalling in API Server pod: $apiServerPod" -ForegroundColor Yellow
-kubectl exec -n airflow $apiServerPod -- pip install apache-airflow-providers-databricks==7.8.0 --quiet
-
-Write-Host "`nInstalling in Scheduler pod: $schedulerPod" -ForegroundColor Yellow
-kubectl exec -n airflow $schedulerPod -- pip install apache-airflow-providers-databricks==7.8.0 --quiet
-
-Write-Host "`nInstalling in DAG Processor pod: $dagProcessorPod" -ForegroundColor Yellow
-kubectl exec -n airflow $dagProcessorPod -c dag-processor -- pip install apache-airflow-providers-databricks==7.8.0 --quiet
-
-Write-Host "`n✅ Databricks provider installed successfully!" -ForegroundColor Green
-Write-Host "`nRefresh your Airflow UI to see Databricks in the connection type dropdown." -ForegroundColor Cyan
-Write-Host "`nNote: This installation is temporary. For permanent installation, see:" -ForegroundColor Yellow
-Write-Host "      docs/DATABRICKS_PROVIDER_INSTALLATION.md" -ForegroundColor Yellow
+Write-Host "⚠️ This script is deprecated. Use Helm deployment instead." -ForegroundColor Yellow
+Write-Host "See: docs/AKS_DEPLOYMENT_GUIDE.md" -ForegroundColor Cyan
+exit 0

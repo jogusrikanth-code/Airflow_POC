@@ -1,41 +1,40 @@
-# Airflow POC - Python Requirements
-# Install with: pip install -r requirements.txt
+# Airflow POC - Python Requirements for AKS Deployment
+# This file is informational. Actual packages are installed via Helm extraPipPackages in kubernetes/values.yaml
+# To use locally: pip install -r requirements.txt
 
-# Core Airflow (match version in values.yaml)
+# Core Airflow
 apache-airflow==2.9.3
 
-# Cloud Providers
-apache-airflow-providers-microsoft-azure
-apache-airflow-providers-databricks
+# === AZURE INTEGRATION ===
+apache-airflow-providers-microsoft-azure>=5.0.0
+azure-storage-blob>=12.0.0
+azure-identity>=1.0.0
+azure-mgmt-resource>=23.0.0
 
-# Database Providers
-apache-airflow-providers-postgres
-apache-airflow-providers-mysql
-apache-airflow-providers-odbc
-apache-airflow-providers-microsoft-mssql
+# === DATABRICKS INTEGRATION ===
+apache-airflow-providers-databricks>=7.8.0
+databricks-sql-connector>=0.4.0
 
-# Database Connectors
-pyodbc
-psycopg2-binary
-mysql-connector-python
+# === POWERBI INTEGRATION (via MSSQL) ===
+apache-airflow-providers-microsoft-mssql>=3.8.0
 
-# Data Processing
-pandas
-pyarrow
-openpyxl
+# === ON-PREMISES SQL SERVER ===
+pyodbc>=4.0.0
+apache-airflow-providers-odbc>=4.1.0
 
-# Azure Services
-azure-storage-blob
-azure-identity
-azure-mgmt-resource
+# === DATA PROCESSING ===
+pandas>=1.5.0
+openpyxl>=3.0.0
 
-# Databricks
-databricks-sql-connector
+# === HTTP/API ===
+apache-airflow-providers-http>=4.0.0
+requests>=2.28.0
 
-# HTTP/API
-requests
-apache-airflow-providers-http
+# === DATABASE PROVIDERS ===
+apache-airflow-providers-postgres>=5.0.0
 
-# Common Protocols
-apache-airflow-providers-ftp
-apache-airflow-providers-sftp
+# === OPTIONAL: For local development ===
+# pytest>=7.0.0
+# black>=22.0.0
+# flake8>=4.0.0
+# pylint>=2.15.0
