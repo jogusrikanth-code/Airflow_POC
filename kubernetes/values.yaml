@@ -25,37 +25,39 @@ data:
     db: airflow
     sslmode: disable
 
-# Airflow Version - Using stable Airflow 2.9.3
-airflowVersion: "2.9.3"
+# Airflow Version - Using latest Airflow 3.0.2
+airflowVersion: "3.0.2"
 defaultAirflowRepository: apache/airflow
-defaultAirflowTag: "2.9.3-python3.11"
+defaultAirflowTag: "3.0.2-python3.11"
 
 # Extra pip packages to install on all pods
 # These will be automatically installed during pod startup
 extraPipPackages:
-  # Azure Integration
-  - "apache-airflow-providers-microsoft-azure>=5.0.0"
-  - "azure-storage-blob>=12.0.0"
-  - "azure-identity>=1.0.0"
-  - "azure-mgmt-resource>=23.0.0"
+  # Azure Integration - Latest versions
+  - "apache-airflow-providers-microsoft-azure>=10.5.0"
+  - "azure-storage-blob>=12.23.0"
+  - "azure-identity>=1.19.0"
+  - "azure-mgmt-resource>=23.2.0"
   
-  # Databricks Integration
-  - "apache-airflow-providers-databricks>=7.8.0"
-  - "databricks-sql-connector>=0.4.0"
+  # Databricks Integration - Latest
+  - "apache-airflow-providers-databricks>=6.11.0"
+  - "databricks-sql-connector>=3.6.0"
   
-  # PowerBI Integration (via Microsoft providers)
+  # PowerBI & SQL Server Integration
   - "apache-airflow-providers-microsoft-mssql>=3.8.0"
+  - "pyodbc>=5.2.0"
+  - "apache-airflow-providers-odbc>=4.9.0"
   
-  # On-Premises SQL Server
-  - "pyodbc>=4.0.0"
-  - "apache-airflow-providers-odbc>=4.1.0"
+  # Other essential providers
+  - "apache-airflow-providers-postgres>=5.14.0"
+  - "apache-airflow-providers-http>=4.13.0"
+  - "apache-airflow-providers-common-sql>=1.19.0"
   
-  # Other useful packages
-  - "apache-airflow-providers-postgres>=5.0.0"
-  - "apache-airflow-providers-http>=4.0.0"
-  - "pandas>=1.5.0"
-  - "openpyxl>=3.0.0"
-  - "requests>=2.28.0"
+  # Data processing libraries
+  - "pandas>=2.2.0"
+  - "openpyxl>=3.1.0"
+  - "requests>=2.32.0"
+  - "sqlalchemy>=2.0.0"
 
 # PostgreSQL Configuration
 postgresql:
@@ -136,9 +138,10 @@ dags:
 # Logs Configuration
 logs:
   persistence:
-    enabled: true
-    size: 5Gi
-    storageClassName: azurefile-csi
+    enabled: false
+  # Use emptyDir for logs to avoid PVC provisioning issues
+  emptyDirConfig:
+    sizeLimit: 10Gi
 
 # Security Context
 securityContext:

@@ -1,104 +1,104 @@
-# 🚀 Airflow POC — Documentation Hub
+# Airflow on AKS - Documentation
 
-Hey there! Welcome to your comprehensive guide for deploying and mastering Apache Airflow. This folder has everything organized by deployment type and learning path! 🎯
+Complete documentation for deploying and managing Apache Airflow 3.0.2 on Azure Kubernetes Service.
 
-## ⚡ Start Here (New to the Project?)
+## 📖 Getting Started
 
-Perfect! Here's your fast track:
+**New to Airflow on AKS?** Start here:
 
-1️⃣ **[00_START_HERE.md](00_START_HERE.md)** → Your personalized learning path (15 min) 🗺️  
-2️⃣ **[learning/ARCHITECTURE.md](learning/ARCHITECTURE.md)** → Understand how it all works (20 min) 🏗️  
-3️⃣ **[deployment-guides/self-managed/QUICKSTART.md](deployment-guides/self-managed/QUICKSTART.md)** → Deploy Airflow on Kubernetes (30 min) 🚀  
-4️⃣ **[learning/AIRFLOW_BASICS.md](learning/AIRFLOW_BASICS.md)** → Learn core concepts & build your first DAG (1-2 hrs) 📚
+1. **[QUICKSTART.md](QUICKSTART.md)** - Deploy Airflow in 15 minutes
+2. **[AKS_DEPLOYMENT_GUIDE.md](AKS_DEPLOYMENT_GUIDE.md)** - Detailed deployment guide
 
-> **Pro Tip:** Don't skip 00_START_HERE! It'll save you hours by showing you exactly what to read based on your role and goals.
+## 🔗 Connection Setup Guides
 
-## 📂 Organized Documentation Structure
+Configure Airflow connections to enterprise systems:
 
-### 🎓 [learning/](learning/) - Learning & Getting Started
-Perfect for newcomers and understanding core concepts:
+- **[AZURE_CONNECTIONS_SETUP.md](AZURE_CONNECTIONS_SETUP.md)** - Azure Blob Storage, Data Lake, Key Vault
+- **[DATABRICKS_CONNECTION_SETUP.md](DATABRICKS_CONNECTION_SETUP.md)** - Databricks jobs, notebooks, SQL
+- **[POWERBI_CONNECTION_SETUP.md](POWERBI_CONNECTION_SETUP.md)** - PowerBI dataset refresh
+- **[ONPREM_SQLSERVER_SETUP.md](ONPREM_SQLSERVER_SETUP.md)** - On-premises SQL Server connectivity
 
-- **`AIRFLOW_BASICS.md`** — Core concepts, tutorials, and hands-on examples 📖
-- **`LEARNING_CHECKLIST.md`** — Track your progress from beginner to expert ✅
-- **`ARCHITECTURE.md`** — System architecture and components explained 🏗️
+## 📊 Monitoring & Operations
 
-### 🚀 [deployment-guides/](deployment-guides/) - Deployment Options
-Choose your deployment path:
+- **[GRAFANA_SETUP_GUIDE.md](GRAFANA_SETUP_GUIDE.md)** - Metrics visualization and alerting
 
-#### 📦 [self-managed/](deployment-guides/self-managed/) - Self-Managed Kubernetes
-- **`QUICKSTART.md`** — Deploy to Kubernetes in 30 minutes ⚡
-- **`HELM_MIGRATION.md`** — Migrate to official Helm charts 📦
-- **`SETUP_SUMMARY.md`** — Configuration quick reference & access details 📋
-- **`SECRETS_MANAGEMENT.md`** — Secure your credentials & sensitive data 🔐
-- **`POSTGRES_VSCODE_CONNECTION.md`** — Connect to the Airflow database for debugging 💾
+## 🗂️ Document Index
 
-#### ☁️ [aks/](deployment-guides/aks/) - Azure Kubernetes Service
-- **`AKS_AIRFLOW_DEPLOYMENT_GUIDE.md`** — Complete AKS production deployment guide 🏢
+### Deployment
+- **QUICKSTART.md** - Fast deployment guide
+- **AKS_DEPLOYMENT_GUIDE.md** - Comprehensive AKS setup
 
-#### 🌟 [astronomer/](deployment-guides/astronomer/) - Managed Airflow
-- **`astronomer.md`** — Astronomer managed platform option ☁️
+### Connections
+- **AZURE_CONNECTIONS_SETUP.md** - Azure services
+- **DATABRICKS_CONNECTION_SETUP.md** - Databricks platform
+- **POWERBI_CONNECTION_SETUP.md** - PowerBI integration
+- **ONPREM_SQLSERVER_SETUP.md** - SQL Server connections
 
-### 🏢 [enterprise/](enterprise/) - Enterprise & Production
-Production-ready patterns and optimization:
+### Monitoring
+- **GRAFANA_SETUP_GUIDE.md** - Observability setup
 
-- **`ENTERPRISE_ARCHITECTURE.md`** — Production design with HA & DR 🏢
-- **`ENTERPRISE_INTEGRATION.md`** — Connect to Databricks, Power BI, Azure services 🔗
-- **`ENTERPRISE_POC_SUMMARY.md`** — Enterprise POC lessons learned 📊
-- **`ORCHESTRATION_IMPROVEMENTS.md`** — Performance tuning & scaling strategies ⚙️
-- **`OPERATIONAL_CHALLENGES.md`** — Real-world troubleshooting & solutions 🐛
+## 🎯 Common Tasks
 
-### 📚 [reference/](reference/) - Reference Materials
-Quick lookups and navigation:
+### Deploy Airflow
+See [QUICKSTART.md](QUICKSTART.md) for step-by-step instructions.
 
-- **`INDEX.md`** — Visual navigation hub with quick links 🗺️
-- **`FOLDER_STRUCTURE.md`** — Understanding how this repo is organized 📁
+### Add Azure Blob Connection
+Follow [AZURE_CONNECTIONS_SETUP.md](AZURE_CONNECTIONS_SETUP.md#azure-blob-storage).
 
-## 🎯 Quick Navigation by Goal
+### Run Databricks Jobs
+Configure connection in [DATABRICKS_CONNECTION_SETUP.md](DATABRICKS_CONNECTION_SETUP.md).
 
-**I want to...**
+### Set Up Monitoring
+Install Grafana using [GRAFANA_SETUP_GUIDE.md](GRAFANA_SETUP_GUIDE.md).
 
-- ✅ **Deploy on local K8s** → [deployment-guides/self-managed/QUICKSTART.md](deployment-guides/self-managed/QUICKSTART.md)
-- ☁️ **Deploy on Azure AKS** → [deployment-guides/aks/AKS_AIRFLOW_DEPLOYMENT_GUIDE.md](deployment-guides/aks/AKS_AIRFLOW_DEPLOYMENT_GUIDE.md)
-- 🌟 **Use managed Airflow** → [deployment-guides/astronomer/astronomer.md](deployment-guides/astronomer/astronomer.md)
-- 📖 **Learn Airflow from scratch** → [learning/AIRFLOW_BASICS.md](learning/AIRFLOW_BASICS.md)
-- 🏗️ **Understand the architecture** → [learning/ARCHITECTURE.md](learning/ARCHITECTURE.md)
-- 🔍 **Find a specific topic** → [reference/INDEX.md](reference/INDEX.md)
-- 📁 **Navigate the codebase** → [reference/FOLDER_STRUCTURE.md](reference/FOLDER_STRUCTURE.md)
-- 🔐 **Secure my deployment** → [deployment-guides/self-managed/SECRETS_MANAGEMENT.md](deployment-guides/self-managed/SECRETS_MANAGEMENT.md)
-- 💾 **Query the database** → [deployment-guides/self-managed/POSTGRES_VSCODE_CONNECTION.md](deployment-guides/self-managed/POSTGRES_VSCODE_CONNECTION.md)
-- 🏢 **Plan enterprise deployment** → [enterprise/ENTERPRISE_ARCHITECTURE.md](enterprise/ENTERPRISE_ARCHITECTURE.md)
-- 🐛 **Fix production issues** → [enterprise/OPERATIONAL_CHALLENGES.md](enterprise/OPERATIONAL_CHALLENGES.md)
+## 📚 Additional Resources
 
-## 💡 Pro Tips for Success
+- [Apache Airflow Documentation](https://airflow.apache.org/docs/apache-airflow/stable/)
+- [Helm Chart Documentation](https://airflow.apache.org/docs/helm-chart/stable/)
+- [Azure Kubernetes Service Docs](https://docs.microsoft.com/en-us/azure/aks/)
 
-> **Working with a team?** Share [00_START_HERE.md](00_START_HERE.md) for smooth onboarding—it creates a personalized path for each role (developer, architect, DevOps).
+## 💡 Quick Reference
 
-> **Planning production?** Read in this order: ARCHITECTURE → ENTERPRISE_ARCHITECTURE → SECRETS_MANAGEMENT → AKS_AIRFLOW_DEPLOYMENT_GUIDE
+### Useful Commands
+```powershell
+# View pods
+kubectl get pods -n airflow
 
-> **Debugging DAGs?** Use [POSTGRES_VSCODE_CONNECTION.md](POSTGRES_VSCODE_CONNECTION.md) to directly query the metadata database and see what Airflow is doing behind the scenes.
+# Check logs
+kubectl logs -n airflow <pod-name> -c <container>
 
-## 💡 Pro Tips for Success
+# Access UI
+kubectl get svc airflow-api-server -n airflow
 
-> **Working with a team?** Share [00_START_HERE.md](00_START_HERE.md) for smooth onboarding—it creates a personalized path for each role (developer, architect, DevOps).
+# Scale workers
+helm upgrade airflow apache-airflow/airflow -n airflow `
+  -f ../kubernetes/values.yaml `
+  --set workers.replicas=3
+```
 
-> **Planning production?** Read in this order: learning/ARCHITECTURE → enterprise/ENTERPRISE_ARCHITECTURE → deployment-guides/self-managed/SECRETS_MANAGEMENT → deployment-guides/aks/AKS_AIRFLOW_DEPLOYMENT_GUIDE
+### Configuration Files
+- `../kubernetes/values.yaml` - Main Helm configuration
+- `../kubernetes/postgres.yaml` - Database deployment
+- `../dags/` - DAG definitions
 
-> **Debugging DAGs?** Use [deployment-guides/self-managed/POSTGRES_VSCODE_CONNECTION.md](deployment-guides/self-managed/POSTGRES_VSCODE_CONNECTION.md) to directly query the metadata database and see what Airflow is doing behind the scenes.
+## 🔍 Troubleshooting
 
-## 🆘 Stuck or Need Help?
+**DAGs not showing?**
+```powershell
+kubectl logs -n airflow -l component=dag-processor -c dag-processor
+```
 
-Follow this troubleshooting path:
+**Database connection issues?**
+```powershell
+kubectl logs -n airflow <postgres-pod>
+kubectl exec -it -n airflow <postgres-pod> -- psql -U airflow
+```
 
-1️⃣ **Start with basics** → Check [00_START_HERE.md](00_START_HERE.md) to ensure you're on the right track  
-2️⃣ **Deployment issues?** → [deployment-guides/self-managed/QUICKSTART.md](deployment-guides/self-managed/QUICKSTART.md) has troubleshooting sections  
-3️⃣ **Concept confusion?** → [learning/AIRFLOW_BASICS.md](learning/AIRFLOW_BASICS.md) explains core ideas  
-4️⃣ **Production problems?** → [enterprise/OPERATIONAL_CHALLENGES.md](enterprise/OPERATIONAL_CHALLENGES.md) has real-world solutions  
-5️⃣ **Still stuck?** → Check [reference/INDEX.md](reference/INDEX.md) to find the specific guide you need
-
-## 📝 About This Repository
-
-The **root `README.md`** in the main repository provides a high-level overview of the entire project structure. This `docs/README.md` is your hub for all learning and deployment documentation.
+**Pod not starting?**
+```powershell
+kubectl describe pod <pod-name> -n airflow
+```
 
 ---
 
-**Happy Orchestrating! 🎉** Every expert was once a beginner. Take it one step at a time, and don't hesitate to revisit guides as you level up!
+**Need help?** All guides include troubleshooting sections. Start with [QUICKSTART.md](QUICKSTART.md) for the basics.
