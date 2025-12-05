@@ -37,13 +37,13 @@ with DAG(
     tags=['azure', 'poc', 'file-copy'],
 ) as dag:
     
-    def copy_one_file(**context):
-        """Copy a single file as a test"""
+    def copy_all_files(**context):
+        """Copy all files from source folder to target folder"""
         from azure.storage.blob import BlobServiceClient
         from airflow.hooks.base import BaseHook
         
         print("=" * 60)
-        print("Azure Blob Copy - Single File Test")
+        print("Azure Blob Copy - Multiple Files")
         print("=" * 60)
         
         # Get connection
@@ -53,50 +53,51 @@ with DAG(
         client = BlobServiceClient.from_connection_string(conn_str)
         container_client = client.get_container_client(CONTAINER)
         
-        # List blobs and get the first actual file
-        blob_list = container_client.list_blobs(name_starts_with=SOURCE_FOLDER, results_per_page=5)
-        all_blobs = []
-        for i, blob in enumerate(blob_list):
-            if i >= 5:
-                break
-            all_blobs.append(blob)
+        # List all blobs in source folder
+        print(f"\n📁 Source folder: {SOURCE_FOLDER}")
+        blob_list = container_client.list_blobs(name_starts_with=SOURCE_FOLDER)
         
-        # Find first non-folder blob
-        source_blob = None
-        for blob in all_blobs:
+        # Get all non-folder blobs
+        source_blobs = []
+        for blob in blob_list:
             if not blob.name.endswith('/') and blob.size > 0:
-                source_blob = blob.name
-                break
+                source_blobs.append(blob)
         
-        if not source_blob:
+        if not source_blobs:
             print("❌ No files found to copy")
             return {'status': 'no_files', 'copied': 0}
         
-        # Extract just filename
-        filename = source_blob.split('/')[-1]
-        target_path = f"{TARGET_FOLDER}/{filename}"
+        print(f"📊 Found {len(source_blobs)} file(s) to copy\n")
         
-        print(f"\n📁 Source: {source_blob}")
-        print(f"📁 Target: {target_path}")
-        print(f"📊 Size: {all_blobs[0].size} bytes")
+        # Copy all files
+        copied_count = 0
+        for source_blob in source_blobs:
+            try:
+                # Extract just filename
+                filename = source_blob.name.split('/')[-1]
+                target_path = f"{TARGET_FOLDER}/{filename}"
+                
+                # Server-side copy
+                source_url = f"https://{conn.host}.blob.core.windows.net/{CONTAINER}/{source_blob.name}"
+                target_blob_client = container_client.get_blob_client(target_path)
+                
+                copy_result = target_blob_client.start_copy_from_url(source_url)
+                
+                print(f"✅ {filename} ({source_blob.size} bytes)")
+                print(f"   → {target_path}")
+                print(f"   Copy ID: {copy_result.get('copy_id', 'N/A')}\n")
+                copied_count += 1
+                
+            except Exception as e:
+                print(f"❌ Failed to copy {source_blob.name}: {str(e)}\n")
         
-        # Server-side copy
-        source_url = f"https://{conn.host}.blob.core.windows.net/{CONTAINER}/{source_blob}"
-        target_blob = container_client.get_blob_client(target_path)
-        
-        print(f"\n🔄 Starting server-side copy...")
-        copy_result = target_blob.start_copy_from_url(source_url)
-        
-        print(f"✅ Copy initiated successfully!")
-        print(f"   Copy ID: {copy_result.get('copy_id', 'N/A')}")
-        
-        print("\n" + "=" * 60)
-        print(f"✅ File copied to {TARGET_FOLDER}/")
+        print("=" * 60)
+        print(f"✅ Successfully copied {copied_count}/{len(source_blobs)} files to {TARGET_FOLDER}/")
         print("=" * 60)
         
-        return {'status': 'success', 'source': source_blob, 'target': target_path, 'copied': 1}
+        return {'status': 'success', 'total_files': len(source_blobs), 'copied': copied_count}
     
     copy_task = PythonOperator(
         task_id='copy_single_file',
-        python_callable=copy_one_file,
+        python_callable=copy_all_files,
     )
