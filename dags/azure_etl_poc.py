@@ -48,16 +48,17 @@ with DAG(
         client = BlobServiceClient.from_connection_string(conn_str)
         container_client = client.get_container_client(CONTAINER)
         
-        # List files in source folder
+        # List files in source folder (exclude folder markers)
         source_blobs = [blob.name for blob in container_client.list_blobs(name_starts_with=SOURCE_FOLDER) 
-                       if blob.name != SOURCE_FOLDER + '/']
+                       if not blob.name.endswith('/') and '/' in blob.name.rstrip('/')]
         
         print(f"Found {len(source_blobs)} files in {SOURCE_FOLDER}")
         
         # Copy each file (server-side operation - no data transfer through Airflow)
         copied_count = 0
         for source_path in source_blobs:
-            filename = source_path.split('/')[-1]
+            # Preserve the folder structure or flatten - here we flatten to target folder
+            filename = source_path.replace(SOURCE_FOLDER + '/', '')
             target_path = f"{TARGET_FOLDER}/{filename}"
             
             print(f"Copying: {filename}")
