@@ -22,7 +22,7 @@ with DAG(
     'powerbi_refresh_poc',
     default_args=default_args,
     description='PowerBI Dataset Refresh POC with server-side operations',
-    schedule=None,
+    schedule_interval=None,
     start_date=datetime(2025, 1, 1),
     catchup=False,
     tags=['powerbi', 'poc', 'refresh'],

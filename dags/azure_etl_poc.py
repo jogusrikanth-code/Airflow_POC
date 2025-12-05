@@ -1,8 +1,7 @@
 """
-Azure Blob Storage File Copy POC
+Azure Blob Storage File Move POC
 ==================================
-Simple POC to copy files from seasonal_buy to Airflow folder.
-Uses server-side copy (no data transfer through Airflow).
+Simple POC to move files from seasonal_buy to Airflow folder.
 
 Storage: sgbilakehousestoragedev
 Container: sg-analytics-raw
@@ -28,16 +27,15 @@ TARGET_FOLDER = 'Airflow'
 with DAG(
     'azure_etl_poc',
     default_args=default_args,
-    description='Copy files from seasonal_buy to Airflow folder (server-side)',
-
-    schedule=None,
+    description='Move files from seasonal_buy to Airflow folder',
+    schedule_interval=None,
     start_date=datetime(2025, 1, 1),
     catchup=False,
-    tags=['azure', 'poc', 'file-copy'],
+    tags=['azure', 'poc', 'file-move'],
 ) as dag:
     
-    def copy_files(**context):
-        """Copy files from source to target folder using server-side copy"""
+    def move_files(**context):
+        """Move files from source to target folder"""
         from azure.storage.blob import BlobServiceClient
         from airflow.hooks.base import BaseHook
         
@@ -54,25 +52,28 @@ with DAG(
         
         print(f"Found {len(source_blobs)} files in {SOURCE_FOLDER}")
         
-        # Copy each file (server-side operation - no data transfer through Airflow)
-        copied_count = 0
+        # Move each file
+        moved_count = 0
         for source_path in source_blobs:
             filename = source_path.split('/')[-1]
             target_path = f"{TARGET_FOLDER}/{filename}"
             
-            print(f"Copying: {filename}")
+            print(f"Moving: {filename}")
             
-            # Server-side copy using copy_blob (Azure handles the copy internally)
-            source_url = f"https://{conn.host}.blob.core.windows.net/{CONTAINER}/{source_path}"
+            # Download and upload (move)
+            source_blob = container_client.get_blob_client(source_path)
+            data = source_blob.download_blob().readall()
+            
             target_blob = container_client.get_blob_client(target_path)
-            target_blob.start_copy_from_url(source_url)
+            target_blob.upload_blob(data, overwrite=True)
             
-            copied_count += 1
+            source_blob.delete_blob()
+            moved_count += 1
         
-        print(f"✓ Copied {copied_count} files to {TARGET_FOLDER} (server-side copy)")
-        return {'copied_count': copied_count}
+        print(f"✓ Moved {moved_count} files to {TARGET_FOLDER}")
+        return {'moved_count': moved_count}
     
-    copy_task = PythonOperator(
-        task_id='copy_files',
-        python_callable=copy_files,
+    move_task = PythonOperator(
+        task_id='move_files',
+        python_callable=move_files,
     )

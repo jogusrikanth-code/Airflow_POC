@@ -22,8 +22,8 @@ default_args = {
 with DAG(
     'databricks_etl_poc',
     default_args=default_args,
-    description='Databricks integration POC with server-side notebook execution',
-    schedule=None,
+    description='Databricks ETL POC with server-side transformation',
+    schedule_interval=None,
     start_date=datetime(2025, 1, 1),
     catchup=False,
     tags=['databricks', 'poc', 'etl'],

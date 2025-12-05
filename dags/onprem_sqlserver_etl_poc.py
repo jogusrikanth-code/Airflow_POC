@@ -25,7 +25,7 @@ with DAG(
     'onprem_sqlserver_etl_poc',
     default_args=default_args,
     description='On-Premise SQL Server ETL POC with server-side transformations',
-    schedule=None,
+    schedule_interval=None,
     start_date=datetime(2025, 1, 1),
     catchup=False,
     tags=['sqlserver', 'onprem', 'etl'],
