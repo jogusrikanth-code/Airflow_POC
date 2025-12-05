@@ -49,8 +49,12 @@ with DAG(
         container_client = client.get_container_client(CONTAINER)
         
         # List files in source folder (exclude folder markers)
-        source_blobs = [blob.name for blob in container_client.list_blobs(name_starts_with=SOURCE_FOLDER) 
-                       if not blob.name.endswith('/') and '/' in blob.name.rstrip('/')]
+        all_blobs = list(container_client.list_blobs(name_starts_with=SOURCE_FOLDER))
+        print(f"DEBUG: Total blobs found: {len(all_blobs)}")
+        for blob in all_blobs[:5]:  # Show first 5 for debugging
+            print(f"DEBUG: Blob: {blob.name}")
+        
+        source_blobs = [blob.name for blob in all_blobs if not blob.name.endswith('/')]
         
         print(f"Found {len(source_blobs)} files in {SOURCE_FOLDER}")
         
