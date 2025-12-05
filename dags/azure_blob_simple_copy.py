@@ -23,7 +23,7 @@ CONFIG = {
 }
 
 with DAG(
-    dag_id='simple_azure_copy',
+    dag_id='azure_blob_simple_copy',
     description='Copy files between Azure Blob folders',
     schedule=None,  # Run manually
     start_date=datetime(2025, 1, 1),

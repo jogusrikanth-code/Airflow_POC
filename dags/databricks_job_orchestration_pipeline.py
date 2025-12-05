@@ -17,7 +17,7 @@ from datetime import datetime
 
 # DAG Definition
 with DAG(
-    dag_id='databricks_job_orchestration',
+    dag_id='databricks_job_orchestration_pipeline',
     description='Trigger 3 Databricks jobs in sequence',
     schedule='0 6 * * *',  # Daily at 6 AM UTC
     start_date=datetime(2025, 1, 1),

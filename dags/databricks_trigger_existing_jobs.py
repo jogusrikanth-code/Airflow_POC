@@ -25,7 +25,7 @@ JOB_IDS = {
 }
 
 with DAG(
-    dag_id='simple_databricks_jobs',
+    dag_id='databricks_trigger_existing_jobs',
     description='Trigger 3 Databricks jobs: Ingest → Process → Quality',
     schedule='0 6 * * *',  # Runs daily at 6 AM UTC
     start_date=datetime(2025, 1, 1),

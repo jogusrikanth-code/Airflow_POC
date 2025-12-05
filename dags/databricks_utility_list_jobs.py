@@ -16,7 +16,7 @@ from airflow.operators.python import PythonOperator
 from datetime import datetime
 
 with DAG(
-    dag_id='list_databricks_jobs',
+    dag_id='databricks_utility_list_jobs',
     description='List all Databricks jobs with IDs',
     schedule=None,  # Run manually
     start_date=datetime(2025, 1, 1),

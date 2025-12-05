@@ -23,7 +23,7 @@ TARGET_FOLDER = 'Airflow/test'            # UPDATE if needed
 
 # DAG Definition
 with DAG(
-    dag_id='azure_etl_poc',
+    dag_id='azure_blob_copy_files',
     description='Copy files between Azure Blob folders',
     schedule=None,  # Run manually
     start_date=datetime(2025, 1, 1),

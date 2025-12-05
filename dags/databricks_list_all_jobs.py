@@ -16,7 +16,7 @@ default_args = {
 }
 
 with DAG(
-    'databricks_list_workflows',
+    'databricks_list_all_jobs',
     default_args=default_args,
     description='List all Databricks workflows in the workspace',
     schedule=None,

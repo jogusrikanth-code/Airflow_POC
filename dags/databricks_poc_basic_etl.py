@@ -20,7 +20,7 @@ default_args = {
 }
 
 with DAG(
-    'databricks_etl_poc',
+    'databricks_poc_basic_etl',
     default_args=default_args,
     description='Databricks integration POC with server-side notebook execution',
     schedule=None,

@@ -15,7 +15,7 @@ default_args = {
 }
 
 with DAG(
-    'test_databricks_connection',
+    'databricks_test_connection',
     default_args=default_args,
     description='Test Databricks connection',
     schedule=None,

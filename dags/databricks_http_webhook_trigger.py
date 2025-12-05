@@ -18,7 +18,7 @@ default_args = {
 }
 
 with DAG(
-    'databricks_webhook_trigger',
+    'databricks_http_webhook_trigger',
     default_args=default_args,
     description='Trigger Databricks via webhook (alternative to SDK)',
     schedule=None,

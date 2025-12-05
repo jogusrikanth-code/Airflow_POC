@@ -32,7 +32,7 @@ NOTEBOOKS = {
 }
 
 with DAG(
-    dag_id='simple_databricks_etl',
+    dag_id='databricks_notebook_etl_pipeline',
     description='ETL Pipeline: Extract → Transform → Load → Validate',
     schedule='0 2 * * *',  # Runs daily at 2 AM UTC
     start_date=datetime(2025, 1, 1),

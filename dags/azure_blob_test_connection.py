@@ -15,7 +15,7 @@ default_args = {
 }
 
 with DAG(
-    'test_azure_connection',
+    'azure_blob_test_connection',
     default_args=default_args,
     description='Test Azure Blob Storage connection',
     schedule=None,

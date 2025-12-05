@@ -26,7 +26,7 @@ notebook_task = {
 }
 
 with DAG(
-    'databricks_native_operator_example',
+    'databricks_operators_demo',
     default_args=default_args,
     description='Example using Airflow native Databricks DatabricksSubmitRunOperator',
     schedule=None,

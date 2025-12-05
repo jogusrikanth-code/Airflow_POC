@@ -19,7 +19,7 @@ default_args = {
 }
 
 with DAG(
-    'databricks_trigger_via_api',
+    'databricks_rest_api_trigger',
     default_args=default_args,
     description='Trigger Databricks jobs using REST API directly',
     schedule=None,  # Manual trigger only

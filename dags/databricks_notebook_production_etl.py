@@ -24,7 +24,7 @@ CLUSTER = {
 
 # DAG Definition
 with DAG(
-    dag_id='databricks_production_etl',
+    dag_id='databricks_notebook_production_etl',
     description='Simple ETL: Extract → Transform → Load → Validate',
     schedule='0 2 * * *',  # Daily at 2 AM UTC
     start_date=datetime(2025, 1, 1),
