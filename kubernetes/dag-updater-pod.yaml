@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: dag-updater
+  namespace: airflow
+spec:
+  containers:
+  - name: updater
+    image: busybox
+    command: ["sleep", "3600"]
+    volumeMounts:
+    - name: dags-volume
+      mountPath: /dags
+  volumes:
+  - name: dags-volume
+    persistentVolumeClaim:
+      claimName: airflow-dags
+  restartPolicy: Never
